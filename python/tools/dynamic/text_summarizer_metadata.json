@@ -1,0 +1,22 @@
+{
+  "name": "text_summarizer",
+  "description": "A tool that automatically extracts key information from articles to generate concise summaries.",
+  "code": "```python\nimport spacy\nfrom spacy.lang.en.stop_words import STOP_WORDS\nfrom heapq import nlargest\nfrom string import punctuation\nfrom typing import Optional\n\ndef summarize_text(params: dict) -> dict:\n    \"\"\"\n    Generate a summary of the input text using extractive summarization.\n    \n    Args:\n        params: Dictionary containing:\n            - text: Input text to summarize (required)\n            - length: Desired summary length in sentences (optional, default=3)\n    \n    Returns:\n        dict: Contains 'result' with the summary or 'error' if processing failed\n    \"\"\"\n    try:\n        # Get parameters with defaults\n        text = params.get('text')\n        if not text or not isinstance(text, str):\n            return {'error': 'Invalid or missing text parameter'}\n            \n        length = params.get('length', 3)\n        if not isinstance(length, int) or length < 1:\n            return {'error': 'Length must be a positive integer'}\n        \n        # Load English language model\n        nlp = spacy.load('en_core_web_sm')\n        \n        # Process text\n        doc = nlp(text)\n        \n        # Calculate word frequencies (excluding stop words and punctuation)\n        word_frequencies = {}\n        for word in doc:\n            if word.text.lower() not in STOP_WORDS and word.text.lower() not in punctuation:\n                if word.text not in word_frequencies:",
+  "parameters": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "The input text to be summarized."
+    },
+    "length": {
+      "type": "integer",
+      "required": false,
+      "description": "The desired length of the summary in sentences.",
+      "default": 3
+    }
+  },
+  "category": "utility",
+  "created_at": "2025-07-21T10:45:56.076643",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

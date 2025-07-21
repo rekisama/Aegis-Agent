@@ -1,0 +1,21 @@
+{
+  "name": "file_reader",
+  "description": "A tool to read and extract content from various file types such as text files, PDFs, and Word documents.",
+  "code": "```python\nimport io\nfrom typing import Dict, Any\n\ntry:\n    # Import required libraries safely (these would be pre-installed in the environment)\n    import PyPDF2\n    from docx import Document\nexcept ImportError:\n    # These imports would be handled by the environment setup, but we include error handling\n    pass\n\ndef process_file_content(file_content: bytes, file_type: str) -> str:\n    \"\"\"\n    Process file content based on file type and return extracted text.\n    \n    Args:\n        file_content: The binary content of the file\n        file_type: The type of the file (txt, pdf, docx)\n        \n    Returns:\n        Extracted text content as string\n    \"\"\"\n    try:\n        if file_type == 'txt':\n            # Decode text content assuming UTF-8 encoding (common for text files)\n            return file_content.decode('utf-8')\n        \n        elif file_type == 'pdf':\n            # Use PyPDF2 to extract text from PDF\n            pdf_reader = PyPDF2.PdfReader(io.BytesIO(file_content))\n            text = \"\"\n            for page in pdf_reader.pages:\n                text += page.extract_text()\n            return text\n            \n        elif file_type == 'docx':\n            # Use python-docx to extract text from Word document\n            doc = Document(io.BytesIO(file_content))\n            return '\\n'.join([para.text for para in doc.paragraphs])\n            \n        else:\n            raise ValueError(f\"Unsupported file type: {file_type}\")\n            \n    except Exception as e:\n        raise ValueError(f\"Error processing file content: {str(e)}\")\n\ndef main(params: Dict[str, Any]) -> Dict[str, Any]:\n    result = {}\n    try:\n        # Get and validate parameters\n        file_path = params.get('file_path')\n        if not file_path:\n            raise ValueError(\"file_path parameter is required\")",
+  "parameters": {
+    "file_path": {
+      "type": "string",
+      "required": true,
+      "description": "The path to the file to be read."
+    },
+    "file_type": {
+      "type": "string",
+      "required": false,
+      "description": "The type of the file (e.g., txt, pdf, docx). If not provided, the tool will attempt to infer it from the file extension."
+    }
+  },
+  "category": "utility",
+  "created_at": "2025-07-21T11:10:36.513295",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

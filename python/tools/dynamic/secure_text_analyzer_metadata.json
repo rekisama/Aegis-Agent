@@ -1,0 +1,26 @@
+{
+  "name": "secure_text_analyzer",
+  "description": "A tool designed to analyze text securely, ensuring data privacy and protection while performing various text analysis tasks such as sentiment analysis, keyword extraction, and content classification.",
+  "code": "```python\nimport re\nfrom typing import Dict, Any\n\ndef analyze_text(params: Dict[str, Any]) -> Dict[str, Any]:\n    \"\"\"\n    Securely analyzes text based on specified analysis type and privacy level.\n    Performs sentiment analysis, keyword extraction, or basic classification.\n    \"\"\"\n    result = {}\n    \n    try:\n        # Get and validate input parameters\n        text = params.get('text', '').strip()\n        if not text:\n            raise ValueError(\"Text parameter is required and cannot be empty\")\n            \n        analysis_type = params.get('analysis_type', '').lower().strip()\n        if analysis_type not in ['sentiment', 'keywords', 'classification']:\n            raise ValueError(\"Invalid analysis_type. Must be one of: sentiment, keywords, classification\")\n            \n        privacy_level = params.get('privacy_level', 'basic').lower().strip()\n        if privacy_level not in ['basic', 'enhanced', 'maximum']:\n            privacy_level = 'basic'\n\n        # Apply privacy level considerations (simulated - in real implementation would use proper encryption)\n        if privacy_level == 'maximum':\n            # Simulate maximum privacy by removing any potential PII patterns\n            text = re.sub(r'\\b\\d{3}-\\d{2}-\\d{4}\\b', '[REDACTED-SSN]', text)  # SSN pattern\n            text = re.sub(r'\\b\\d{4}-\\d{4}-\\d{4}-\\d{4}\\b', '[REDACTED-CC]', text)  # Credit card pattern\n            text = re.sub(r'\\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Z|a-z]{2,}\\b', '[REDACTED-EMAIL]', text)  # Email pattern\n\n        # Perform the requested analysis\n        if analysis_type == 'sentiment':\n            # Simple sentiment",
+  "parameters": {
+    "text": {
+      "type": "string",
+      "required": true,
+      "description": "The text to be analyzed"
+    },
+    "analysis_type": {
+      "type": "string",
+      "required": true,
+      "description": "Type of analysis to perform (e.g., sentiment, keywords, classification)"
+    },
+    "privacy_level": {
+      "type": "string",
+      "required": false,
+      "description": "Level of privacy/security to apply (e.g., basic, enhanced, maximum)"
+    }
+  },
+  "category": "utility",
+  "created_at": "2025-07-21T11:08:14.399567",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

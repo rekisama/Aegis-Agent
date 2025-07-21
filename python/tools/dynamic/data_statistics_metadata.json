@@ -1,0 +1,21 @@
+{
+  "name": "data_statistics",
+  "description": "A tool to perform various statistical calculations on datasets, including mean, median, mode, standard deviation, and other descriptive statistics.",
+  "code": "```python\nimport numpy as np\nfrom scipy import stats\n\n# Get input parameters\ndata = params.get('data', [])\nrequested_stats = params.get('statistics', ['mean', 'median', 'mode', 'std', 'min', 'max', 'sum', 'variance'])\n\nresult = {}\nvalid_stats = {\n    'mean': lambda x: np.mean(x),\n    'median': lambda x: np.median(x),\n    'mode': lambda x: stats.mode(x)[0][0],\n    'std': lambda x: np.std(x),\n    'min': lambda x: np.min(x),\n    'max': lambda x: np.max(x),\n    'sum': lambda x: np.sum(x),\n    'variance': lambda x: np.var(x),\n    'range': lambda x: np.max(x) - np.min(x),\n    'percentile25': lambda x: np.percentile(x, 25),\n    'percentile75': lambda x: np.percentile(x, 75),\n    'iqr': lambda x: np.percentile(x, 75) - np.percentile(x, 25)\n}\n\ntry:\n    # Input validation\n    if not isinstance(data, (list, tuple, np.ndarray)):\n        raise ValueError(\"Input data must be an array of numbers\")\n    \n    if len(data) == 0:\n        raise ValueError(\"Input data cannot be empty\")\n    \n    # Convert to numpy array for calculations\n    data_array = np.array(data, dtype=np.float64)\n    \n    # Calculate requested statistics\n    for stat in requested_stats:\n        if stat not in valid_stats:\n            continue  # Skip invalid statistics requests\n        \n        try:\n            result[stat] = float(valid_stats[stat](data_array))\n        except Exception as e:\n            result[stat] = f\"Error calculating {stat}: {str(e)}\"",
+  "parameters": {
+    "data": {
+      "type": "array",
+      "required": true,
+      "description": "The dataset to analyze, provided as an array of numbers."
+    },
+    "statistics": {
+      "type": "array",
+      "required": false,
+      "description": "Specific statistics to calculate (e.g., ['mean', 'median', 'std']). If not provided, all basic statistics will be calculated."
+    }
+  },
+  "category": "utility",
+  "created_at": "2025-07-21T11:11:19.613567",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

@@ -1,10 +1,10 @@
-# 🛡️ WAgent (Aegis Agent)
+# 🛡️ Aegis Agent
 
 一个强大的AI代理框架，具备持久化记忆、多代理协作和动态工具创建能力。
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Status](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
+[![状态](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 
 ## 🌟 特性
 

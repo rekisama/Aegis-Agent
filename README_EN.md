@@ -1,6 +1,8 @@
 # 🛡️ Aegis Agent
 
-<img src="P3RE_Aigis_art.png" alt="Aegis Agent" width="300" height="auto">
+<div align="center">
+  <img src="pic/P3RE_Aigis_art.png" alt="Aegis Agent" width="200" height="auto">
+</div>
 
 A powerful AI agent framework with intelligent task execution, persistent memory, and dynamic tool management capabilities.
 

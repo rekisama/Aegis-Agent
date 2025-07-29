@@ -1,6 +1,8 @@
 #  Aegis Agent
 
-![Aegis Agent](pic/P3RE_Aigis_art.png)
+<div align="center">
+  <img src="pic/P3RE_Aigis_art.png" alt="Aegis Agent" width="200" height="auto">
+</div>
 
 AI代理框架，具备智能任务执行、持久化记忆和动态工具管理能力。
 

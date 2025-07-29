@@ -1,6 +1,6 @@
 """
 Enhanced Communication System for Aegis Agent
-参考 Agent Zero 的设计，提供实时流式通信功能
+参考 Aegis Agent 的设计，提供实时流式通信功能
 """
 
 import asyncio
@@ -62,7 +62,7 @@ class StreamHandler:
 class EnhancedCommunication:
     """
     增强的通信系统
-    参考 Agent Zero 的设计，提供实时流式通信
+    参考 Aegis Agent 的设计，提供实时流式通信
     """
     
     def __init__(self):

@@ -119,69 +119,69 @@ TOOL_DESCRIPTIONS = {
         ]
     },
     
-    "tavily_search": {
-        "name": "tavily_search",
-        "category": ToolCategory.SEARCH,
-        "description": "AI-powered search with enhanced understanding and answer generation",
-        "capabilities": [
-            "AI-enhanced search",
-            "Generate direct answers",
-            "Understand complex queries",
-            "Provide structured results",
-            "Include answer synthesis"
-        ],
-        "use_cases": [
-            "搜索最新新闻",
-            "查找技术信息",
-            "获取AI生成的答案",
-            "复杂信息查询",
-            "需要综合回答的问题"
-        ],
-        "parameters": {
-            "query": {
-                "type": "string",
-                "description": "Search query",
-                "required": True,
-                "examples": ["最近保险新闻", "AI发展趋势", "Python最佳实践"]
-            },
-            "max_results": {
-                "type": "integer",
-                "description": "Maximum number of results",
-                "required": False,
-                "default": 5
-            },
-            "search_depth": {
-                "type": "string",
-                "description": "Search depth level",
-                "required": False,
-                "default": "basic",
-                "options": ["basic", "advanced"]
-            },
-            "include_answer": {
-                "type": "boolean",
-                "description": "Include AI-generated answer",
-                "required": False,
-                "default": True
-            }
-        },
-        "examples": [
-            {
-                "task": "搜索最近保险新闻",
-                "parameters": {"query": "最近保险新闻", "max_results": 5, "search_depth": "basic"},
-                "reason": "Need to find recent insurance industry news"
-            },
-            {
-                "task": "查询AI发展趋势",
-                "parameters": {"query": "2024年AI发展趋势", "search_depth": "advanced"},
-                "reason": "Need comprehensive information about AI trends"
-            }
-        ],
-        "limitations": [
-            "Requires API key",
-            "May have rate limits",
-            "Depends on external service"
-        ]
-    },
+    # "tavily_search": {  # Disabled Tavily search
+    #     "name": "tavily_search",
+    #     "category": ToolCategory.SEARCH,
+    #     "description": "AI-powered search with enhanced understanding and answer generation",
+    #     "capabilities": [
+    #         "AI-enhanced search",
+    #         "Generate direct answers",
+    #         "Understand complex queries",
+    #         "Provide structured results",
+    #         "Include answer synthesis"
+    #     ],
+    #     "use_cases": [
+    #         "搜索最新新闻",
+    #         "查找技术信息",
+    #         "获取AI生成的答案",
+    #         "复杂信息查询",
+    #         "需要综合回答的问题"
+    #     ],
+    #     "parameters": {
+    #         "query": {
+    #             "type": "string",
+    #             "description": "Search query",
+    #             "required": True,
+    #             "examples": ["最近保险新闻", "AI发展趋势", "Python最佳实践"]
+    #         },
+    #         "max_results": {
+    #             "type": "integer",
+    #             "description": "Maximum number of results",
+    #             "required": False,
+    #             "default": 5
+    #         },
+    #         "search_depth": {
+    #             "type": "string",
+    #             "description": "Search depth level",
+    #             "required": False,
+    #             "default": "basic",
+    #             "options": ["basic", "advanced"]
+    #         },
+    #         "include_answer": {
+    #             "type": "boolean",
+    #             "description": "Include AI-generated answer",
+    #             "required": False,
+    #             "default": True
+    #         }
+    #     },
+    #     "examples": [
+    #         {
+    #             "task": "搜索最近保险新闻",
+    #             "parameters": {"query": "最近保险新闻", "max_results": 5, "search_depth": "basic"},
+    #             "reason": "Need to find recent insurance industry news"
+    #         },
+    #         {
+    #             "task": "查询AI发展趋势",
+    #             "parameters": {"query": "2024年AI发展趋势", "search_depth": "advanced"},
+    #             "reason": "Need comprehensive information about AI trends"
+    #         }
+    #     ],
+    #     "limitations": [
+    #         "Requires API key",
+    #         "May have rate limits",
+    #         "Depends on external service"
+    #     ]
+    # },
     
     "code": {
         "name": "code",
@@ -245,7 +245,7 @@ for i in range(10):
 TOOL_CATEGORIES = {
     ToolCategory.SEARCH: {
         "description": "Search and information retrieval tools",
-        "tools": ["search", "tavily_search"]
+        "tools": ["search"]  # Removed tavily_search
     },
     ToolCategory.SYSTEM: {
         "description": "System operation and management tools",

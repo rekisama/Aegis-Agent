@@ -1,14 +1,5 @@
 """
-Tools module for Agent Zero.
-Contains the tool system and default tools.
+Tools package for Aegis Agent
 """
 
-from .base import BaseTool, ToolResult, ToolRegistry, CustomTool, ToolBuilder
-from .terminal import TerminalTool
-from .search import SearchTool
-from .code import CodeExecutionTool
-
-__all__ = [
-    "BaseTool", "ToolResult", "ToolRegistry", "CustomTool", "ToolBuilder",
-    "TerminalTool", "SearchTool", "CodeExecutionTool"
-] 
+__version__ = "1.0.0" 

@@ -1,0 +1,40 @@
+{
+  "searxng": {
+    "url": "http://localhost:8888",
+    "api_endpoint": "/search",
+    "timeout": 15,
+    "max_results": 10,
+    "default_engines": [
+      "google",
+      "bing",
+      "duckduckgo",
+      "wikipedia"
+    ],
+    "default_categories": [
+      "general",
+      "science",
+      "news",
+      "social media"
+    ],
+    "safe_search": true,
+    "language": "zh-CN",
+    "format": "json"
+  },
+  "fallback": {
+    "enabled": true,
+    "engines": [
+      "google",
+      "bing"
+    ],
+    "timeout": 10
+  },
+  "cache": {
+    "enabled": true,
+    "timeout": 300,
+    "max_size": 100
+  },
+  "logging": {
+    "level": "INFO",
+    "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  }
+}

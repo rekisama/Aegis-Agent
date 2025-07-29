@@ -1,6 +1,8 @@
-# 🛡️ WAgent (Aegis Agent)
+# 🛡️ Aegis Agent
 
-A powerful AI agent framework with persistent memory, multi-agent collaboration, and dynamic tool creation capabilities.
+<img src="P3RE_Aigis_art.png" alt="Aegis Agent" width="300" height="auto">
+
+A powerful AI agent framework with intelligent task execution, persistent memory, and dynamic tool management capabilities.
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -8,31 +10,32 @@ A powerful AI agent framework with persistent memory, multi-agent collaboration,
 
 ## 🌟 Features
 
-### 🤖 Core Capabilities
-- **Intelligent Task Execution**: Automatically analyze and execute complex tasks
+### 🤖 Core Functionality
+- **Intelligent Task Execution**: Automatic analysis and execution of complex tasks
 - **Persistent Memory**: Long-term memory and context preservation
-- **Multi-Agent Collaboration**: Master-slave agent architecture with task delegation
-- **Dynamic Tool Creation**: LLM-driven tool generation and optimization
-- **Real-time Communication**: Efficient communication mechanism between agents
+- **Dynamic Tool Management**: JSON-driven tool registration and management
+- **Real-time Web Interface**: Modern ChatGPT-style web interface
+- **Conversation Storage**: Local storage for conversation history with multi-conversation management
 
 ### 🛠️ Built-in Tools
+- **Code Execution**: Secure Python code execution environment
 - **Terminal Operations**: System command execution and file operations
-- **Web Search**: Tavily search and general web scraping
-- **Code Execution**: Secure code execution environment
-- **Dynamic Tools**: Intelligent text analysis, data visualization, code quality inspection, etc.
+- **Web Search**: SearXNG search engine integration
+- **File Operations**: File reading, writing, and content analysis
+- **Data Visualization**: Intelligent data analysis and chart generation
 
 ### 🔧 Advanced Features
-- **Adaptive Learning**: Learn and improve from task execution
-- **Self-evolution**: Automatically optimize tools and strategies
-- **Security Validation**: Multi-layer security checks and validation
+- **WebSocket Communication**: Real-time bidirectional communication
 - **Modular Architecture**: Extensible tool and component system
+- **Security Validation**: Multi-layer security checks and validation
+- **Responsive Design**: Support for desktop and mobile devices
 
 ## 📋 Table of Contents
 
 - [Installation](#installation)
 - [Quick Start](#quick-start)
+- [Web Interface](#web-interface)
 - [Configuration](#configuration)
-- [Usage Guide](#usage-guide)
 - [API Documentation](#api-documentation)
 - [Tool System](#tool-system)
 - [Contributing](#contributing)
@@ -74,206 +77,224 @@ cp env.example .env
 
 ## ⚡ Quick Start
 
-### Basic Usage
+### Command Line Mode
 
-1. **Start the Agent**
+1. **Start Agent**
 ```bash
 python main.py
 ```
 
 2. **Interactive Mode**
 ```
-🛡️  Aegis Agent > task Help me analyze the code quality of this project
+Aegis Agent > help me calculate 2 to the power of 100
 ```
 
-3. **Check Status**
+### Web Interface Mode
+
+1. **Start Web Server**
+```bash
+python web/start_server.py
 ```
-🛡️  Aegis Agent > status
-```
 
-### Example Script
+2. **Access Web Interface**
+Open browser and visit `http://localhost:8000`
 
-```python
-from python.agent.core import Agent
-from python.utils.env_manager import env_manager
+3. **Start Conversation**
+- Enter tasks in the input box
+- View real-time execution process
+- Automatically save conversation history
 
-# Initialize agent
-agent = Agent()
+## 🌐 Web Interface
 
-# Execute task
-result = await agent.execute_task("Analyze the quality of Python files in current directory")
-print(result)
-```
+### Interface Features
+- **ChatGPT Style**: Modern dark theme interface
+- **Real-time Execution**: Display Agent's real-time execution process
+- **Conversation Management**: Auto-save and load conversation history
+- **Responsive Design**: Support for desktop and mobile devices
+- **Keyboard Shortcuts**: Enter to send, Shift+Enter for new line
+
+### Feature Demo
+1. **Task Execution**: Enter "calculate 2 to the power of 100" to see real-time execution
+2. **Code Analysis**: Enter "analyze the performance of this Python code"
+3. **Data Visualization**: Enter "generate a bar chart for sales data"
+4. **File Operations**: Enter "read and analyze this CSV file"
 
 ## ⚙️ Configuration
 
 ### Environment Variables
 
-Create a `.env` file and configure the following variables:
+Create `.env` file and configure the following variables:
 
 ```env
-# DeepSeek API Configuration
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
-DEEPSEEK_API_BASE_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
+# LLM API Configuration
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_BASE=https://api.deepseek.com/v1
 
-# Tavily Search API Configuration
-TAVILY_API_KEY=your_tavily_api_key_here
-TAVILY_SEARCH_DEPTH=basic
-TAVILY_INCLUDE_IMAGES=false
-TAVILY_INCLUDE_ANSWER=true
+# Tool Configuration
+SEARXNG_URL=https://searxng.example.com
+SEARXNG_API_KEY=your_searxng_api_key
 
-# Agent Configuration
-AGENT_NAME=Aegis Agent
-AGENT_MODEL=deepseek-chat
-AGENT_TEMPERATURE=0.7
-AGENT_MAX_TOKENS=4000
-
-# Memory Configuration
+# System Configuration
+LOG_LEVEL=INFO
 MEMORY_ENABLED=true
-MEMORY_RETENTION_DAYS=30
-MEMORY_MAX_SIZE=10000
-
-# Tools Configuration
-TOOLS_ENABLED=true
-TERMINAL_TIMEOUT=30
-SEARCH_TIMEOUT=10
-CODE_TIMEOUT=30
 ```
 
-### Getting API Keys
+### Tool Configuration
 
-1. **DeepSeek API**: Visit [DeepSeek Platform](https://platform.deepseek.com/) to register and get API key
-2. **Tavily API**: Visit [Tavily](https://tavily.com/) to register and get API key
+Tool configurations are stored in JSON files under `python/tools/` directory:
 
-## 📖 Usage Guide
-
-### Command Line Interface
-
-After starting, you can use the following commands:
-
-- `task <description>` - Execute a task
-- `status` - Show agent status
-- `memory` - Show memory statistics
-- `tools` - List available tools
-- `create <name>` - Create subordinate agent
-- `help` - Show help
-- `quit` - Exit
-
-### Programming Interface
-
-```python
-from python.agent.core import Agent
-
-# Create agent instance
-agent = Agent()
-
-# Execute task
-result = await agent.execute_task("Help me write a Python function to calculate Fibonacci sequence")
-
-# Create subordinate agent
-subordinate = agent.create_subordinate("Data Analysis Assistant")
-
-# Add custom tool
-from python.tools.base import BaseTool
-agent.add_tool("custom_tool", CustomTool())
+```json
+{
+  "name": "code",
+  "description": "Execute Python code",
+  "parameters": {
+    "code": {
+      "type": "string",
+      "description": "Python code to execute"
+    }
+  }
+}
 ```
 
-## 🔧 Tool System
+## 📚 API Documentation
+
+### WebSocket API
+
+#### Connection
+```javascript
+const ws = new WebSocket('ws://localhost:8000/ws');
+```
+
+#### Send Message
+```javascript
+ws.send(JSON.stringify({
+  type: 'chat',
+  message: 'Your task description'
+}));
+```
+
+#### Receive Messages
+```javascript
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  switch(data.type) {
+    case 'task_completed':
+      console.log('Task completed:', data.result);
+      break;
+    case 'execution_log':
+      console.log('Execution log:', data.message);
+      break;
+  }
+};
+```
+
+### HTTP API
+
+#### Send Task
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "calculate 2 to the power of 100"}'
+```
+
+## 🛠️ Tool System
 
 ### Built-in Tools
 
-| Tool | Function | Status |
-|------|----------|--------|
-| `terminal` | System command execution | ✅ |
-| `search` | Web search | ✅ |
-| `tavily_search` | Tavily search | ✅ |
-| `code` | Code execution | ✅ |
+| Tool Name | Description | Parameters |
+|-----------|-------------|------------|
+| `code` | Execute Python code | `code`: code string |
+| `terminal` | Execute system commands | `command`: command string |
+| `search` | Web search | `query`: search query |
+| `file_reader` | Read file content | `file_path`: file path |
 
 ### Dynamic Tools
 
-The system supports LLM-driven dynamic tool creation:
-
-- **Text Analysis**: Sentiment analysis, text summarization
-- **Data Processing**: Data cleaning, statistical analysis, visualization
-- **Code Quality**: Code quality analysis, security checks
-- **Smart Calculation**: Mathematical calculations, unit conversion
-
-### Creating Custom Tools
+The system supports dynamic loading and registration of tools:
 
 ```python
 from python.tools.base import BaseTool
 
 class CustomTool(BaseTool):
-    def __init__(self):
-        super().__init__(
-            name="custom_tool",
-            description="Custom tool description",
-            parameters={
-                "param1": {"type": "string", "description": "Parameter 1"}
-            }
-        )
+    name = "custom_tool"
+    description = "Custom tool"
     
     async def execute(self, **kwargs):
-        # Tool implementation logic
-        return {"result": "Execution result"}
+        # Tool execution logic
+        return ToolResult(success=True, data={"result": "execution result"})
 ```
 
-## 🏗️ Architecture
+## 🔧 Development
 
+### Project Structure
 ```
-WAgent/
+Aegis-Agent/
 ├── python/
-│   ├── agent/           # Agent core
-│   ├── tools/           # Tool system
-│   ├── memory/          # Memory management
-│   ├── communication/   # Communication system
-│   ├── llm/            # LLM client
-│   └── utils/          # Utility functions
-├── prompts/            # Prompt templates
-├── examples/           # Example code
-├── tests/             # Test files
-└── docs/              # Documentation
+│   ├── agent/          # Agent core
+│   ├── tools/          # Tool system
+│   ├── llm/           # LLM client
+│   ├── memory/        # Memory management
+│   └── utils/         # Utility functions
+├── web/               # Web interface
+│   ├── templates/     # HTML templates
+│   └── main.py        # FastAPI application
+├── examples/          # Example scripts
+└── tests/            # Test files
 ```
 
-## 🧪 Testing
+### Adding New Tools
 
-Run the test suite:
+1. **Create Tool Class**
+```python
+# python/tools/custom_tool.py
+from .base import BaseTool
 
+class CustomTool(BaseTool):
+    name = "custom_tool"
+    description = "Custom tool description"
+    
+    async def execute(self, **kwargs):
+        # Implement tool logic
+        return ToolResult(success=True, data={"result": "result"})
+```
+
+2. **Register Tool**
+```json
+// python/tools/custom_tool_metadata.json
+{
+  "name": "custom_tool",
+  "description": "Custom tool description",
+  "parameters": {
+    "param1": {
+      "type": "string",
+      "description": "Parameter description"
+    }
+  }
+}
+```
+
+### Running Tests
 ```bash
-# Run all tests
-pytest
-
-# Run specific test
-pytest tests/test_basic.py
-
-# Run performance tests
-pytest test_performance.py
+python -m pytest tests/
 ```
 
 ## 🤝 Contributing
 
 We welcome all forms of contributions!
 
-### Contribution Steps
-
-1. Fork the project
-2. Create a feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Ways to Contribute
+1. **Report Bugs**: Report issues in GitHub Issues
+2. **Feature Suggestions**: Propose new features
+3. **Code Contributions**: Submit Pull Requests
+4. **Documentation Improvements**: Improve documentation and examples
 
 ### Development Environment Setup
-
 ```bash
-# Install development dependencies
+git clone https://github.com/rekisama/Aegis-Agent.git
+cd Aegis-Agent
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
-pip install pytest black flake8 mypy
-
-# Code formatting
-black python/
-flake8 python/
-mypy python/
 ```
 
 ## 📄 License
@@ -282,16 +303,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🙏 Acknowledgments
 
-- [DeepSeek](https://platform.deepseek.com/) - Providing powerful LLM API
-- [Tavily](https://tavily.com/) - Providing intelligent search services
-- All contributors and users
-
-## 📞 Support
-
-- 📧 Email: [your-email@example.com]
-- 🐛 Issue Report: [GitHub Issues](https://github.com/rekisama/Aegis-Agent/issues)
-- 📖 Documentation: [Project Wiki](https://github.com/rekisama/Aegis-Agent/wiki)
+Thanks to all developers and users who have contributed to this project!
 
 ---
 
-**⭐ If this project helps you, please give us a star!** 
+**Aegis Agent** - Making AI agents smarter, more powerful, and easier to use! 

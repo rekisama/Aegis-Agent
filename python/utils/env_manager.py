@@ -27,16 +27,33 @@ class EnvManager:
     
     def _load_env(self):
         """Load environment variables from .env file."""
-        env_path = Path(self.env_file)
+        # 尝试多个可能的路径
+        possible_paths = [
+            Path(self.env_file),  # 当前目录
+            Path(__file__).parent.parent.parent / self.env_file,  # 项目根目录
+            Path.cwd() / self.env_file,  # 当前工作目录
+        ]
         
-        if env_path.exists():
+        env_path = None
+        for path in possible_paths:
+            if path.exists():
+                env_path = path
+                break
+        
+        if env_path:
             load_dotenv(env_path)
             self.loaded = True
+            print(f"✅ Loaded environment from: {env_path}")
         else:
             # Create .env file from example if it doesn't exist
             self._create_env_from_example()
-            load_dotenv(env_path)
-            self.loaded = True
+            # 重新尝试加载
+            for path in possible_paths:
+                if path.exists():
+                    load_dotenv(path)
+                    self.loaded = True
+                    print(f"✅ Loaded environment from: {path}")
+                    break
     
     def _create_env_from_example(self):
         """Create .env file from env.example if it doesn't exist."""

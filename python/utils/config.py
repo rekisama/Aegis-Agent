@@ -1,5 +1,5 @@
 """
-Configuration Management for Agent Zero
+Configuration Management for Aegis Agent
 Handles loading and saving agent configurations.
 """
 
@@ -121,7 +121,7 @@ def get_config_examples() -> Dict[str, Dict]:
     """
     return {
         "basic": {
-            "name": "Agent Zero",
+            "name": "Aegis Agent",
             "model": "gpt-4",
             "temperature": 0.7,
             "max_tokens": 4000,

@@ -1,5 +1,5 @@
 """
-Communication System for Agent Zero
+Communication System for Aegis Agent
 Handles communication between agents in the hierarchical structure.
 """
 

@@ -1,6 +1,6 @@
 """
 Enhanced Tool Manager for Aegis Agent
-参考 Agent Zero 的设计，提供更强大的工具管理功能
+参考 Aegis Agent 的设计，提供更强大的工具管理功能
 """
 
 from typing import Dict, List, Optional, Any, Type, Callable
@@ -12,7 +12,7 @@ import logging
 
 
 class Instrument:
-    """自定义函数工具，参考 Agent Zero 的 Instruments"""
+    """自定义函数工具，参考 Aegis Agent 的 Instruments"""
     
     def __init__(self, name: str, func: Callable, description: str = ""):
         self.name = name
@@ -43,7 +43,7 @@ class Instrument:
 class EnhancedToolManager(ToolManager):
     """
     增强的工具管理器
-    参考 Agent Zero 的设计，提供更多功能
+    参考 Aegis Agent 的设计，提供更多功能
     """
     
     def __init__(self):

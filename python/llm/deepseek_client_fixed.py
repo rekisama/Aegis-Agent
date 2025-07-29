@@ -1,5 +1,5 @@
 """
-DeepSeek API Client
+修复版本的DeepSeek API Client
 """
 
 import aiohttp
@@ -19,9 +19,9 @@ class Message:
     content: str
 
 
-class DeepSeekClient:
+class DeepSeekClientFixed:
     """
-    DeepSeek API Client
+    修复版本的DeepSeek API Client
     """
     
     def __init__(self):
@@ -222,4 +222,5 @@ class DeepSeekClient:
             return {
                 "success": False,
                 "error": f"任务分析异常：{str(e)}"
-            }
+            } 
+ 

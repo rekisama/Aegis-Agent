@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .log {
+            background: #f5f5f5;
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin: 10px 0;
+            height: 300px;
+            overflow-y: auto;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .input-group {
+            margin: 10px 0;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .connected { background: #d4edda; color: #155724; }
+        .disconnected { background: #f8d7da; color: #721c24; }
+        .connecting { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket连接测试</h1>
+    
+    <div id="status" class="status disconnected">未连接</div>
+    
+    <div class="input-group">
+        <input type="text" id="messageInput" placeholder="输入测试消息" value="计算2的5次方是多少">
+        <button onclick="sendMessage()">发送消息</button>
+        <button onclick="connect()">连接</button>
+        <button onclick="disconnect()">断开</button>
+    </div>
+    
+    <div class="log" id="log"></div>
+    
+    <script>
+        let ws = null;
+        const log = document.getElementById('log');
+        const status = document.getElementById('status');
+        
+        function addLog(message) {
+            const time = new Date().toLocaleTimeString();
+            log.innerHTML += `[${time}] ${message}\n`;
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        function updateStatus(text, className) {
+            status.textContent = text;
+            status.className = `status ${className}`;
+        }
+        
+        function connect() {
+            addLog('尝试连接WebSocket...');
+            updateStatus('连接中...', 'connecting');
+            
+            ws = new WebSocket('ws://localhost:8000/ws');
+            
+            ws.onopen = function() {
+                addLog('WebSocket连接已建立');
+                updateStatus('已连接', 'connected');
+            };
+            
+            ws.onmessage = function(event) {
+                addLog(`收到消息: ${event.data}`);
+            };
+            
+            ws.onclose = function() {
+                addLog('WebSocket连接已关闭');
+                updateStatus('已断开', 'disconnected');
+            };
+            
+            ws.onerror = function(error) {
+                addLog(`WebSocket错误: ${error}`);
+                updateStatus('连接错误', 'disconnected');
+            };
+        }
+        
+        function disconnect() {
+            if (ws) {
+                ws.close();
+                ws = null;
+            }
+        }
+        
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const message = messageInput.value.trim();
+            
+            if (!message) {
+                addLog('消息为空');
+                return;
+            }
+            
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                addLog('WebSocket未连接');
+                return;
+            }
+            
+            const data = {
+                type: 'chat',
+                message: message
+            };
+            
+            addLog(`发送消息: ${JSON.stringify(data)}`);
+            ws.send(JSON.stringify(data));
+        }
+        
+        // 页面加载时自动连接
+        window.onload = function() {
+            connect();
+        };
+    </script>
+</body>
+</html> 

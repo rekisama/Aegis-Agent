@@ -1,0 +1,127 @@
+{
+  "tools": {
+    "enhanced_terminal": {
+      "name": "enhanced_terminal",
+      "description": "执行 Shell 命令并自动分析错误",
+      "class": "EnhancedTerminalTool",
+      "module": "python.tools.enhanced_terminal",
+      "aliases": ["terminal_command", "shell", "cmd"],
+      "category": "system",
+      "enabled": true,
+      "auto_load": true,
+      "version": "1.0.0",
+      "author": "Aegis Agent Team",
+      "dependencies": [],
+      "config_schema": {
+        "timeout": {"type": "int", "default": 30, "description": "Command timeout in seconds"},
+        "shell": {"type": "bool", "default": false, "description": "Use shell mode"}
+      },
+      "metadata": {
+        "supported_platforms": ["linux", "windows", "macos"],
+        "command_history": true
+      }
+    },
+    "terminal": {
+      "name": "terminal",
+      "description": "执行 Shell 命令的工具",
+      "class": "TerminalTool",
+      "module": "python.tools.terminal",
+      "aliases": ["terminal_command", "shell", "cmd"],
+      "category": "system",
+      "enabled": true,
+      "auto_load": true,
+      "version": "1.0.0",
+      "author": "Aegis Agent Team",
+      "dependencies": [],
+      "config_schema": {
+        "timeout": {"type": "int", "default": 30, "description": "Command timeout in seconds"},
+        "shell": {"type": "bool", "default": false, "description": "Use shell mode"}
+      },
+      "metadata": {
+        "supported_platforms": ["linux", "windows", "macos"],
+        "command_history": true
+      }
+    },
+    "search": {
+      "name": "search",
+      "description": "SearXNG元搜索引擎，提供统一的搜索接口",
+      "class": "SearchTool",
+      "module": "python.tools.search",
+      "aliases": ["web_search", "web_search_tool", "searxng", "meta_search", "unified_search"],
+      "category": "information",
+      "enabled": true,
+      "auto_load": true,
+      "version": "1.0.0",
+      "author": "Aegis Agent Team",
+      "dependencies": ["aiohttp"],
+      "config_schema": {
+        "searxng_url": {"type": "string", "default": "http://localhost:8888", "description": "SearXNG服务器地址"},
+        "timeout": {"type": "int", "default": 15, "description": "Search timeout in seconds"},
+        "max_results": {"type": "int", "default": 10, "description": "Maximum number of results"},
+        "engines": {"type": "array", "default": ["google", "bing", "duckduckgo", "wikipedia"], "description": "搜索引擎列表"}
+      },
+      "metadata": {
+        "search_engines": ["google", "bing", "duckduckgo", "wikipedia", "twitter", "reddit"],
+        "categories": ["general", "science", "news", "social media"],
+        "unified_interface": true,
+        "async_search": true,
+        "result_formatting": true
+      }
+    },
+    "code": {
+      "name": "code",
+      "description": "Execute Python code safely (also known as codeexecution)",
+      "class": "CodeExecutionTool",
+      "module": "python.tools.code",
+      "aliases": ["codeexecution", "code_execution", "python_code"],
+      "category": "execution",
+      "enabled": true,
+      "auto_load": true,
+      "version": "1.0.0",
+      "author": "Aegis Agent Team",
+      "dependencies": [],
+      "config_schema": {
+        "timeout": {"type": "int", "default": 30, "description": "Execution timeout in seconds"},
+        "capture_output": {"type": "bool", "default": true, "description": "Capture execution output"}
+      },
+      "metadata": {
+        "safe_modules": ["os", "sys", "json", "datetime", "math", "random", "re"],
+        "dangerous_modules": ["subprocess", "eval", "exec", "compile", "__import__"]
+      }
+    }
+  },
+  "categories": {
+    "execution": {
+      "name": "Code Execution",
+      "description": "Tools for executing code and scripts",
+      "icon": "⚡"
+    },
+    "system": {
+      "name": "System Operations", 
+      "description": "Tools for system administration and file operations",
+      "icon": "🔧"
+    },
+    "information": {
+      "name": "Information Retrieval",
+      "description": "Tools for searching and gathering information",
+      "icon": "🔍"
+    },
+    "communication": {
+      "name": "Communication",
+      "description": "Tools for messaging and communication",
+      "icon": "💬"
+    },
+    "data": {
+      "name": "Data Processing",
+      "description": "Tools for data analysis and manipulation",
+      "icon": "📊"
+    }
+  },
+  "settings": {
+    "auto_discover": true,
+    "hot_reload": true,
+    "default_timeout": 30,
+    "max_concurrent_tools": 5,
+    "log_level": "INFO"
+  }
+} 

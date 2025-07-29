@@ -1,5 +1,5 @@
 """
-Utilities module for Agent Zero.
+Utilities module for Aegis Agent.
 Contains configuration and utility functions.
 """
 

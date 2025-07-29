@@ -1,5 +1,5 @@
 """
-LLM Integration Module for Agent Zero
+LLM Integration Module for Aegis Agent
 Contains language model clients and integration components.
 """
 

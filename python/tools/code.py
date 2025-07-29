@@ -1,5 +1,5 @@
 """
-Code Execution Tool for Agent Zero
+Code Execution Tool for Aegis Agent
 Provides safe code execution capabilities for agents.
 """
 
@@ -14,7 +14,10 @@ from typing import Dict, List, Optional, Any
 from pathlib import Path
 import sys
 
-from .base import BaseTool, ToolResult
+try:
+    from .base import BaseTool, ToolResult
+except ImportError:
+    from python.tools.base import BaseTool, ToolResult
 
 
 class CodeExecutionTool(BaseTool):
@@ -29,7 +32,7 @@ class CodeExecutionTool(BaseTool):
     """
     
     def __init__(self):
-        super().__init__("code", "Execute Python code safely")
+        super().__init__("code", "Execute Python code safely (also known as codeexecution)")
         self.safe_modules = {
             "os", "sys", "json", "datetime", "math", "random", "re",
             "pathlib", "tempfile", "shutil", "glob", "fnmatch"
@@ -40,9 +43,13 @@ class CodeExecutionTool(BaseTool):
         self.execution_history: List[Dict] = []
         
         # Load timeout from environment
-        from ..utils.env_manager import env_manager
-        tools_config = env_manager.get_tools_config()
-        self.max_execution_time = tools_config.get("code_timeout", 30)
+        try:
+            from ..utils.env_manager import env_manager
+            tools_config = env_manager.get_tools_config()
+            self.max_execution_time = tools_config.get("code_timeout", 30)
+        except ImportError:
+            # Fallback to default value
+            self.max_execution_time = 30
         self.max_output_size = 10000
     
     async def execute(self, **kwargs) -> ToolResult:
@@ -150,53 +157,47 @@ class CodeExecutionTool(BaseTool):
             temp_file = f.name
         
         try:
-            # Execute the code in a subprocess
-            if capture_output:
-                process = await asyncio.create_subprocess_exec(
-                    sys.executable, temp_file,
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE
-                )
-            else:
-                process = await asyncio.create_subprocess_exec(
-                    sys.executable, temp_file
-                )
+            # Execute the code using subprocess.run instead of asyncio.create_subprocess_exec
+            # This is more compatible with Windows
+            import subprocess
             
-            # Wait for completion with timeout
-            try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=timeout
+            if capture_output:
+                result = subprocess.run(
+                    [sys.executable, temp_file],
+                    capture_output=True,
+                    text=True,
+                    timeout=timeout,
+                    encoding='utf-8'
                 )
-            except asyncio.TimeoutError:
-                process.kill()
-                return ToolResult(
-                    success=False,
-                    data=None,
-                    error=f"Code execution timed out after {timeout} seconds",
-                    execution_time=timeout,
-                    metadata={"tool_type": "code", "timeout": True}
+                stdout_str = result.stdout
+                stderr_str = result.stderr
+                return_code = result.returncode
+            else:
+                result = subprocess.run(
+                    [sys.executable, temp_file],
+                    timeout=timeout,
+                    encoding='utf-8'
                 )
+                stdout_str = ""
+                stderr_str = ""
+                return_code = result.returncode
             
             execution_time = asyncio.get_event_loop().time() - start_time
             
             # Limit output size
-            stdout_str = stdout.decode() if stdout else ""
-            stderr_str = stderr.decode() if stderr else ""
-            
             if len(stdout_str) > self.max_output_size:
                 stdout_str = stdout_str[:self.max_output_size] + "... (truncated)"
             
             if len(stderr_str) > self.max_output_size:
                 stderr_str = stderr_str[:self.max_output_size] + "... (truncated)"
             
-            if process.returncode == 0:
+            if return_code == 0:
                 return ToolResult(
                     success=True,
                     data={
                         "stdout": stdout_str,
                         "stderr": stderr_str,
-                        "return_code": process.returncode,
+                        "return_code": return_code,
                         "code": code
                     },
                     execution_time=execution_time,
@@ -206,19 +207,37 @@ class CodeExecutionTool(BaseTool):
                 return ToolResult(
                     success=False,
                     data=None,
-                    error=f"Code execution failed with return code {process.returncode}: {stderr_str}",
+                    error=f"Code execution failed with return code {return_code}: {stderr_str}",
                     execution_time=execution_time,
-                    metadata={"tool_type": "code", "return_code": process.returncode}
+                    metadata={"tool_type": "code", "return_code": return_code}
                 )
                 
-        except Exception as e:
+        except subprocess.TimeoutExpired:
             execution_time = asyncio.get_event_loop().time() - start_time
             return ToolResult(
                 success=False,
                 data=None,
-                error=f"Code execution error: {str(e)}",
+                error=f"Code execution timed out after {timeout} seconds",
+                execution_time=timeout,
+                metadata={"tool_type": "code", "timeout": True}
+            )
+        except Exception as e:
+            execution_time = asyncio.get_event_loop().time() - start_time
+            error_msg = f"Code execution error: {str(e)}"
+            if not str(e):
+                error_msg = f"Code execution error: Unknown exception of type {type(e).__name__}"
+            
+            # 添加详细的错误信息
+            import traceback
+            error_details = traceback.format_exc()
+            error_msg += f"\nDetails: {error_details}"
+            
+            return ToolResult(
+                success=False,
+                data=None,
+                error=error_msg,
                 execution_time=execution_time,
-                metadata={"tool_type": "code"}
+                metadata={"tool_type": "code", "exception_type": type(e).__name__}
             )
         finally:
             # Clean up temporary file

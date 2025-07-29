@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Agent Zero - Main Entry Point
+Aegis Agent - Main Entry Point
 A general-purpose personal assistant with persistent memory and multi-agent cooperation.
 """
 
@@ -21,7 +21,7 @@ from python.utils.config import load_config
 
 class AegisAgentCLI:
     """
-    Command-line interface for Agent Zero.
+    Command-line interface for Aegis Agent.
     """
     
     def __init__(self):

@@ -1,5 +1,5 @@
 """
-Base Tool System for Agent Zero
+Base Tool System for Aegis Agent
 Provides the foundation for creating and using custom tools.
 """
 
@@ -28,14 +28,14 @@ class ToolResult:
 
 class BaseTool(ABC):
     """
-    Base class for all tools in the Agent Zero framework.
+    Base class for all tools in the Aegis Agent framework.
     
     All tools should inherit from this class and implement the required methods.
     """
     
     def __init__(self, name: str = None, description: str = None):
         self.name = name or self.__class__.__name__
-        self.description = description or "A tool for Agent Zero"
+        self.description = description or "A tool for Aegis Agent"
         self.created_at = datetime.now()
         self.usage_count = 0
         self.success_count = 0
@@ -78,7 +78,7 @@ class BaseTool(ABC):
 
 class ToolRegistry:
     """
-    Registry for managing tools in the Agent Zero framework.
+    Registry for managing tools in the Aegis Agent framework.
     """
     
     def __init__(self):

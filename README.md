@@ -1,44 +1,46 @@
-# 🛡️ Aegis Agent
+#  Aegis Agent
 
-一个强大的AI代理框架，具备持久化记忆、多代理协作和动态工具创建能力。
+![Aegis Agent](pic/P3RE_Aigis_art.png)
+
+AI代理框架，具备智能任务执行、持久化记忆和动态工具管理能力。
 
 [![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![状态](https://img.shields.io/badge/Status-Active-brightgreen.svg)]()
 
-## 🌟 特性
+##  特性
 
-### 🤖 核心功能
+###  核心功能
 - **智能任务执行**: 自动分析和执行复杂任务
 - **持久化记忆**: 长期记忆和上下文保持
-- **多代理协作**: 主从代理架构，支持任务委派
-- **动态工具创建**: LLM驱动的工具生成和优化
-- **实时通信**: 代理间高效通信机制
+- **动态工具管理**: JSON驱动的工具注册和管理
+- **实时Web界面**: 现代化Web界面
+- **对话保存**: 本地存储对话历史，支持多对话管理
 
-### 🛠️ 内置工具
+###  内置工具
+- **代码执行**: 安全的Python代码运行环境
 - **终端操作**: 系统命令执行和文件操作
-- **网络搜索**: Tavily搜索和通用网络爬取
-- **代码执行**: 安全的代码运行环境
-- **动态工具**: 智能文本分析、数据可视化、代码质量检查等
+- **网络搜索**: SearXNG搜索引擎集成
+- **文件操作**: 文件读写和内容分析
+- **数据可视化**: 智能数据分析和图表生成
 
-### 🔧 高级特性
-- **自适应学习**: 从任务执行中学习和改进
-- **自我进化**: 自动优化工具和策略
-- **安全验证**: 多层安全检查和验证
+###  高级特性
+- **WebSocket通信**: 实时双向通信
 - **模块化架构**: 可扩展的工具和组件系统
+- **安全验证**: 多层安全检查和验证
+- **响应式设计**: 支持桌面和移动设备
 
-## 📋 目录
+##  目录
 
 - [安装](#安装)
 - [快速开始](#快速开始)
+- [Web界面](#web界面)
 - [配置](#配置)
-- [使用指南](#使用指南)
 - [API文档](#api文档)
 - [工具系统](#工具系统)
-- [贡献指南](#贡献指南)
-- [许可证](#许可证)
 
-## 🚀 安装
+
+##  安装
 
 ### 系统要求
 - Python 3.8+
@@ -72,9 +74,9 @@ cp env.example .env
 # 编辑 .env 文件，填入你的API密钥
 ```
 
-## ⚡ 快速开始
+##  快速开始
 
-### 基本使用
+### 命令行模式
 
 1. **启动代理**
 ```bash
@@ -83,205 +85,204 @@ python main.py
 
 2. **交互模式**
 ```
-🛡️  Aegis Agent > task 帮我分析这个项目的代码质量
+Aegis Agent > 帮我计算2的100次方
 ```
 
-3. **查看状态**
-```
-🛡️  Aegis Agent > status
-```
+### Web界面模式
 
-### 示例脚本
-
-```python
-from python.agent.core import Agent
-from python.utils.env_manager import env_manager
-
-# 初始化代理
-agent = Agent()
-
-# 执行任务
-result = await agent.execute_task("分析当前目录的Python文件质量")
-print(result)
+1. **启动Web服务器**
+```bash
+python web/start_server.py
 ```
 
-## ⚙️ 配置
+2. **访问Web界面**
+打开浏览器访问 `http://localhost:8000`
+
+3. **开始对话**
+- 在输入框中输入任务
+- 实时查看执行过程
+- 自动保存对话历史
+
+##  Web界面
+
+### 界面特性
+- **实时执行**: 显示Agent的实时执行过程
+- **对话管理**: 自动保存和加载对话历史
+- **响应式设计**: 支持桌面和移动设备
+- **键盘快捷键**: Enter发送，Shift+Enter换行
+
+### 功能演示
+1. **任务执行**: 输入"计算2的100次方"查看实时执行过程
+2. **代码分析**: 输入"分析这个Python代码的性能"
+3. **数据可视化**: 输入"生成一个销售数据的柱状图"
+4. **文件操作**: 输入"读取并分析这个CSV文件"
+
+##  配置
 
 ### 环境变量
 
 创建 `.env` 文件并配置以下变量：
 
 ```env
-# DeepSeek API配置
-DEEPSEEK_API_KEY=your_deepseek_api_key_here
-DEEPSEEK_API_BASE_URL=https://api.deepseek.com/v1
-DEEPSEEK_MODEL=deepseek-chat
-
-# Tavily搜索API配置
-TAVILY_API_KEY=your_tavily_api_key_here
-TAVILY_SEARCH_DEPTH=basic
-TAVILY_INCLUDE_IMAGES=false
-TAVILY_INCLUDE_ANSWER=true
-
-# 代理配置
-AGENT_NAME=Aegis Agent
-AGENT_MODEL=deepseek-chat
-AGENT_TEMPERATURE=0.7
-AGENT_MAX_TOKENS=4000
-
-# 记忆配置
-MEMORY_ENABLED=true
-MEMORY_RETENTION_DAYS=30
-MEMORY_MAX_SIZE=10000
+# LLM API配置
+DEEPSEEK_API_KEY=your_deepseek_api_key
+DEEPSEEK_API_BASE=https://api.deepseek.com/v1
 
 # 工具配置
-TOOLS_ENABLED=true
-TERMINAL_TIMEOUT=30
-SEARCH_TIMEOUT=10
-CODE_TIMEOUT=30
+SEARXNG_URL=https://searxng.example.com
+SEARXNG_API_KEY=your_searxng_api_key
+
+# 系统配置
+LOG_LEVEL=INFO
+MEMORY_ENABLED=true
 ```
 
-### 获取API密钥
+### 工具配置
 
-1. **DeepSeek API**: 访问 [DeepSeek官网](https://platform.deepseek.com/) 注册并获取API密钥
-2. **Tavily API**: 访问 [Tavily官网](https://tavily.com/) 注册并获取API密钥
+工具配置存储在 `python/tools/` 目录下的JSON文件中：
 
-## 📖 使用指南
-
-### 命令行界面
-
-启动后，你可以使用以下命令：
-
-- `task <描述>` - 执行任务
-- `status` - 显示代理状态
-- `memory` - 显示记忆统计
-- `tools` - 列出可用工具
-- `create <名称>` - 创建从属代理
-- `help` - 显示帮助
-- `quit` - 退出
-
-### 编程接口
-
-```python
-from python.agent.core import Agent
-
-# 创建代理实例
-agent = Agent()
-
-# 执行任务
-result = await agent.execute_task("帮我写一个Python函数来计算斐波那契数列")
-
-# 创建从属代理
-subordinate = agent.create_subordinate("数据分析助手")
-
-# 添加自定义工具
-from python.tools.base import BaseTool
-agent.add_tool("custom_tool", CustomTool())
+```json
+{
+  "name": "code",
+  "description": "执行Python代码",
+  "parameters": {
+    "code": {
+      "type": "string",
+      "description": "要执行的Python代码"
+    }
+  }
+}
 ```
 
-## 🔧 工具系统
+##  API文档
+
+### WebSocket API
+
+#### 连接
+```javascript
+const ws = new WebSocket('ws://localhost:8000/ws');
+```
+
+#### 发送消息
+```javascript
+ws.send(JSON.stringify({
+  type: 'chat',
+  message: '你的任务描述'
+}));
+```
+
+#### 接收消息
+```javascript
+ws.onmessage = function(event) {
+  const data = JSON.parse(event.data);
+  switch(data.type) {
+    case 'task_completed':
+      console.log('任务完成:', data.result);
+      break;
+    case 'execution_log':
+      console.log('执行日志:', data.message);
+      break;
+  }
+};
+```
+
+### HTTP API
+
+#### 发送任务
+```bash
+curl -X POST http://localhost:8000/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"message": "计算2的100次方"}'
+```
+
+##  工具系统
 
 ### 内置工具
 
-| 工具 | 功能 | 状态 |
-|------|------|------|
-| `terminal` | 系统命令执行 | ✅ |
-| `search` | 网络搜索 | ✅ |
-| `tavily_search` | Tavily搜索 | ✅ |
-| `code` | 代码执行 | ✅ |
+| 工具名称 | 描述 | 参数 |
+|---------|------|------|
+| `code` | 执行Python代码 | `code`: 代码字符串 |
+| `terminal` | 执行系统命令 | `command`: 命令字符串 |
+| `search` | 网络搜索 | `query`: 搜索查询 |
+| `file_reader` | 读取文件内容 | `file_path`: 文件路径 |
 
 ### 动态工具
 
-系统支持LLM驱动的动态工具创建：
-
-- **文本分析**: 情感分析、文本摘要
-- **数据处理**: 数据清洗、统计分析、可视化
-- **代码质量**: 代码质量分析、安全检查
-- **智能计算**: 数学计算、单位转换
-
-### 创建自定义工具
+系统支持动态加载和注册工具：
 
 ```python
 from python.tools.base import BaseTool
 
 class CustomTool(BaseTool):
-    def __init__(self):
-        super().__init__(
-            name="custom_tool",
-            description="自定义工具描述",
-            parameters={
-                "param1": {"type": "string", "description": "参数1"}
-            }
-        )
+    name = "custom_tool"
+    description = "自定义工具"
     
     async def execute(self, **kwargs):
-        # 工具实现逻辑
-        return {"result": "执行结果"}
+        # 工具执行逻辑
+        return ToolResult(success=True, data={"result": "执行结果"})
 ```
 
-## 🏗️ 架构
+##  开发
 
+### 项目结构
 ```
-WAgent/
+Aegis-Agent/
 ├── python/
-│   ├── agent/           # 代理核心
-│   ├── tools/           # 工具系统
-│   ├── memory/          # 记忆管理
-│   ├── communication/   # 通信系统
-│   ├── llm/            # LLM客户端
-│   └── utils/          # 工具函数
-├── prompts/            # 提示词模板
-├── examples/           # 示例代码
-├── tests/             # 测试文件
-└── docs/              # 文档
+│   ├── agent/          # 代理核心
+│   ├── tools/          # 工具系统
+│   ├── llm/           # LLM客户端
+│   ├── memory/        # 记忆管理
+│   └── utils/         # 工具函数
+├── web/               # Web界面
+│   ├── templates/     # HTML模板
+│   └── main.py        # FastAPI应用
+├── examples/          # 示例脚本
+└── tests/            # 测试文件
 ```
 
-## 🧪 测试
+### 添加新工具
 
-运行测试套件：
+1. **创建工具类**
+```python
+# python/tools/custom_tool.py
+from .base import BaseTool
 
+class CustomTool(BaseTool):
+    name = "custom_tool"
+    description = "自定义工具描述"
+    
+    async def execute(self, **kwargs):
+        # 实现工具逻辑
+        return ToolResult(success=True, data={"result": "结果"})
+```
+
+2. **注册工具**
+```json
+// python/tools/custom_tool_metadata.json
+{
+  "name": "custom_tool",
+  "description": "自定义工具描述",
+  "parameters": {
+    "param1": {
+      "type": "string",
+      "description": "参数描述"
+    }
+  }
+}
+```
+
+### 运行测试
 ```bash
-# 运行所有测试
-pytest
-
-# 运行特定测试
-pytest tests/test_basic.py
-
-# 运行性能测试
-pytest test_performance.py
+python -m pytest tests/
 ```
 
-## 🤝 贡献指南
-
-我们欢迎所有形式的贡献！
-
-### 贡献步骤
-
-1. Fork 项目
-2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 开启 Pull Request
 
 ### 开发环境设置
-
 ```bash
-# 安装开发依赖
+git clone https://github.com/rekisama/Aegis-Agent.git
+cd Aegis-Agent
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
-pip install pytest black flake8 mypy
-
-# 代码格式化
-black python/
-flake8 python/
-mypy python/
 ```
 
-## 📄 许可证
-
-本项目采用 MIT 许可证 - 查看 [LICENSE](LICENSE) 文件了解详情。
-
-## 🙏 致谢
-
-- [DeepSeek](https://platform.deepseek.com/) - 提供强大的LLM API
-- [Tavily](https://tavily.com/) - 提供智能搜索服务
-- 所有贡献者和用户

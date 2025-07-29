@@ -88,7 +88,7 @@ class DynamicToolCreator:
                 description=description,
                 code=code,
                 parameters=parameters,
-                category=category,
+                category=category if isinstance(category, ToolCategory) else ToolCategory.UTILITY,
                 created_at=self._get_timestamp()
             )
             
@@ -99,8 +99,64 @@ class DynamicToolCreator:
             return True
             
         except Exception as e:
-            logging.error(f"Failed to create dynamic tool {name}: {e}")
+            logging.error(f"Failed to create tool {name}: {e}")
             return False
+    
+    async def create_tool_from_spec(self, tool_spec: Dict[str, Any]):
+        """
+        从规范创建动态工具
+        
+        Args:
+            tool_spec: 工具规范字典
+            
+        Returns:
+            BaseTool: 创建的工具实例或None
+        """
+        try:
+            name = tool_spec.get("name")
+            description = tool_spec.get("description", "")
+            code = tool_spec.get("code", "")
+            parameters = tool_spec.get("parameters", {})
+            
+            if not name or not code:
+                logging.error("Invalid tool spec: missing name or code")
+                return None
+            
+            # 创建工具
+            success = self.create_tool(name, description, code, parameters)
+            
+            if success:
+                # 尝试导入并返回工具实例
+                try:
+                    import importlib.util
+                    tool_file = self.tools_dir / f"dynamic_{name}.py"
+                    
+                    if tool_file.exists():
+                        spec = importlib.util.spec_from_file_location(f"dynamic_{name}", tool_file)
+                        module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(module)
+                        
+                        # 查找工具类
+                        tool_class_name = f"Dynamic{name.capitalize()}Tool"
+                        if hasattr(module, tool_class_name):
+                            tool_class = getattr(module, tool_class_name)
+                            return tool_class()
+                        
+                        logging.error(f"Tool class {tool_class_name} not found in module")
+                        return None
+                    else:
+                        logging.error(f"Tool file {tool_file} does not exist")
+                        return None
+                        
+                except Exception as e:
+                    logging.error(f"Failed to import created tool {name}: {e}")
+                    return None
+            
+            return None
+            
+        except Exception as e:
+            logging.error(f"Failed to create tool from spec: {e}")
+            return None
     
     def _generate_tool_template(self, name: str, code: str, parameters: Dict[str, Any]) -> str:
         """生成工具代码模板"""

@@ -1,90 +1,140 @@
 """
-Terminal Tool for Agent Zero
-Allows agents to execute terminal commands safely.
+Terminal Tool
+执行 Shell 命令的工具
 """
 
 import asyncio
-import subprocess
 import logging
-import os
-import tempfile
-from typing import Dict, List, Optional
-from pathlib import Path
+import subprocess
+import shlex
+from typing import Dict, Any, Optional
 
-from .base import BaseTool, ToolResult
+import sys
+from pathlib import Path
+# 添加项目根目录到Python路径
+project_root = Path(__file__).parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+from python.tools.base import BaseTool, ToolResult
 
 
 class TerminalTool(BaseTool):
-    """
-    Tool for executing terminal commands.
-    
-    Features:
-    - Safe command execution
-    - Working directory management
-    - Output capture and parsing
-    - Command history tracking
-    """
+    """执行 Shell 命令的工具"""
     
     def __init__(self):
-        super().__init__("terminal", "Execute terminal commands safely")
-        self.working_directory = os.getcwd()
-        self.command_history: List[Dict] = []
-        
-        # Load timeout from environment
-        from ..utils.env_manager import env_manager
-        tools_config = env_manager.get_tools_config()
-        self.timeout = tools_config.get("terminal_timeout", 30)
-        
-        self.safe_commands = {
-            "ls", "dir", "pwd", "cd", "echo", "cat", "head", "tail",
-            "grep", "find", "which", "where", "type", "help", "man",
-            "python", "pip", "git", "npm", "node", "curl", "wget"
-        }
-        self.dangerous_commands = {
-            "rm", "del", "format", "fdisk", "dd", "shutdown", "reboot",
-            "kill", "killall", "sudo", "su", "chmod", "chown"
-        }
+        super().__init__("terminal", "执行 Shell 命令")
+        self.command_history = []
     
     async def execute(self, **kwargs) -> ToolResult:
-        """Execute a terminal command."""
-        command = kwargs.get("command", "")
-        working_dir = kwargs.get("working_dir", self.working_directory)
-        timeout = kwargs.get("timeout", 30)
-        capture_output = kwargs.get("capture_output", True)
+        """
+        执行 Shell 命令
         
-        if not command:
-            return ToolResult(
-                success=False,
-                data=None,
-                error="No command provided",
-                metadata={"tool_type": "terminal"}
-            )
-        
-        # Check if command is safe
-        if not self._is_safe_command(command):
-            return ToolResult(
-                success=False,
-                data=None,
-                error=f"Command '{command}' is not allowed for security reasons",
-                metadata={"tool_type": "terminal", "blocked": True}
-            )
-        
-        try:
-            # Execute the command
-            result = await self._execute_command(command, working_dir, timeout, capture_output)
+        Args:
+            command: 要执行的命令
+            timeout: 超时时间（秒）
+            cwd: 工作目录
+            shell: 是否使用shell模式
             
-            # Store in history
+        Returns:
+            ToolResult with command output
+        """
+        try:
+            command = kwargs.get("command", "")
+            timeout = kwargs.get("timeout", 30)
+            cwd = kwargs.get("cwd", None)
+            shell = kwargs.get("shell", False)
+            
+            if not command:
+                return ToolResult(
+                    success=False,
+                    data=None,
+                    error="No command provided",
+                    metadata={"tool_type": "terminal"}
+                )
+            
+            # 记录命令历史
             self.command_history.append({
                 "command": command,
-                "working_dir": working_dir,
-                "timestamp": asyncio.get_event_loop().time(),
-                "success": result.success,
-                "output": result.data if result.success else result.error
+                "timestamp": self.created_at.isoformat()
             })
             
-            return result
+            logging.info(f"Executing terminal command: {command}")
             
+            # 执行命令
+            if shell:
+                # 使用shell模式
+                process = await asyncio.create_subprocess_shell(
+                    command,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=cwd
+                )
+            else:
+                # 解析命令参数
+                args = shlex.split(command)
+                process = await asyncio.create_subprocess_exec(
+                    *args,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=cwd
+                )
+            
+            # 等待命令完成
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=timeout
+            )
+            
+            # 获取返回码
+            return_code = process.returncode
+            
+            # 解码输出
+            stdout_text = stdout.decode('utf-8', errors='ignore')
+            stderr_text = stderr.decode('utf-8', errors='ignore')
+            
+            result_data = {
+                "command": command,
+                "return_code": return_code,
+                "stdout": stdout_text,
+                "stderr": stderr_text,
+                "success": return_code == 0,
+                "command_history_length": len(self.command_history)
+            }
+            
+            if return_code == 0:
+                logging.info(f"Command executed successfully: {command}")
+                return ToolResult(
+                    success=True,
+                    data=result_data,
+                    metadata={
+                        "tool_type": "terminal",
+                        "command": command,
+                        "return_code": return_code
+                    }
+                )
+            else:
+                logging.warning(f"Command failed with return code {return_code}: {command}")
+                return ToolResult(
+                    success=False,
+                    data=result_data,
+                    error=f"Command failed with return code {return_code}",
+                    metadata={
+                        "tool_type": "terminal",
+                        "command": command,
+                        "return_code": return_code
+                    }
+                )
+                
+        except asyncio.TimeoutError:
+            logging.error(f"Command timed out after {timeout}s: {command}")
+            return ToolResult(
+                success=False,
+                data=None,
+                error=f"Command timed out after {timeout} seconds",
+                metadata={"tool_type": "terminal", "timeout": True}
+            )
         except Exception as e:
+            logging.error(f"Command execution failed: {e}")
             return ToolResult(
                 success=False,
                 data=None,
@@ -92,130 +142,21 @@ class TerminalTool(BaseTool):
                 metadata={"tool_type": "terminal"}
             )
     
-    async def _execute_command(self, command: str, working_dir: str, 
-                             timeout: int, capture_output: bool) -> ToolResult:
-        """Execute a command with the given parameters."""
-        start_time = asyncio.get_event_loop().time()
-        
-        try:
-            # Create process
-            if capture_output:
-                process = await asyncio.create_subprocess_exec(
-                    *command.split(),
-                    stdout=asyncio.subprocess.PIPE,
-                    stderr=asyncio.subprocess.PIPE,
-                    cwd=working_dir
-                )
-            else:
-                process = await asyncio.create_subprocess_exec(
-                    *command.split(),
-                    cwd=working_dir
-                )
-            
-            # Wait for completion with timeout
-            try:
-                stdout, stderr = await asyncio.wait_for(
-                    process.communicate(),
-                    timeout=timeout
-                )
-            except asyncio.TimeoutError:
-                process.kill()
-                return ToolResult(
-                    success=False,
-                    data=None,
-                    error=f"Command timed out after {timeout} seconds",
-                    execution_time=timeout,
-                    metadata={"tool_type": "terminal", "timeout": True}
-                )
-            
-            execution_time = asyncio.get_event_loop().time() - start_time
-            
-            if process.returncode == 0:
-                return ToolResult(
-                    success=True,
-                    data={
-                        "stdout": stdout.decode() if stdout else "",
-                        "stderr": stderr.decode() if stderr else "",
-                        "return_code": process.returncode,
-                        "command": command,
-                        "working_dir": working_dir
-                    },
-                    execution_time=execution_time,
-                    metadata={"tool_type": "terminal"}
-                )
-            else:
-                return ToolResult(
-                    success=False,
-                    data=None,
-                    error=f"Command failed with return code {process.returncode}: {stderr.decode() if stderr else 'Unknown error'}",
-                    execution_time=execution_time,
-                    metadata={"tool_type": "terminal", "return_code": process.returncode}
-                )
-                
-        except Exception as e:
-            execution_time = asyncio.get_event_loop().time() - start_time
-            return ToolResult(
-                success=False,
-                data=None,
-                error=f"Command execution error: {str(e)}",
-                execution_time=execution_time,
-                metadata={"tool_type": "terminal"}
-            )
-    
-    def _is_safe_command(self, command: str) -> bool:
-        """Check if a command is safe to execute."""
-        # Split command and get the first part (the actual command)
-        parts = command.split()
-        if not parts:
-            return False
-        
-        cmd = parts[0].lower()
-        
-        # Check if it's in the dangerous list
-        if cmd in self.dangerous_commands:
-            return False
-        
-        # Check if it's in the safe list
-        if cmd in self.safe_commands:
-            return True
-        
-        # Allow some commands with specific patterns
-        safe_patterns = [
-            "python -c", "python -m", "pip install", "pip list",
-            "git status", "git log", "git show", "git diff",
-            "npm list", "npm view", "node -e"
-        ]
-        
-        for pattern in safe_patterns:
-            if command.lower().startswith(pattern):
-                return True
-        
-        # By default, be conservative
-        return False
-    
-    def change_working_directory(self, new_dir: str) -> bool:
-        """Change the working directory for future commands."""
-        try:
-            if os.path.exists(new_dir) and os.path.isdir(new_dir):
-                self.working_directory = os.path.abspath(new_dir)
-                logging.info(f"Changed working directory to: {self.working_directory}")
-                return True
-            else:
-                logging.error(f"Directory does not exist: {new_dir}")
-                return False
-        except Exception as e:
-            logging.error(f"Failed to change working directory: {e}")
-            return False
-    
-    def get_working_directory(self) -> str:
-        """Get the current working directory."""
-        return self.working_directory
-    
-    def get_command_history(self, limit: int = 10) -> List[Dict]:
-        """Get recent command history."""
-        return self.command_history[-limit:] if self.command_history else []
+    def get_info(self) -> Dict[str, Any]:
+        """获取工具信息"""
+        info = super().get_info()
+        info.update({
+            "command_history_length": len(self.command_history),
+            "supported_shells": ["bash", "cmd", "powershell"],
+            "max_timeout": 300
+        })
+        return info
     
     def clear_history(self):
-        """Clear command history."""
+        """清空命令历史"""
         self.command_history.clear()
         logging.info("Terminal command history cleared") 
+    
+    def get_history(self) -> list:
+        """获取命令历史"""
+        return self.command_history.copy() 

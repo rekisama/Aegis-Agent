@@ -190,10 +190,58 @@ async def get_tools():
         tools_info.append({
             "name": name,
             "description": tool.description,
-            "usage_count": getattr(tool, 'usage_count', 0)
+            "usage_count": getattr(tool, 'usage_count', 0),
+            "type": "builtin"  # 标记为内置工具
         })
     
     return {"tools": tools_info}
+
+@app.get("/api/tools/all")
+async def get_all_tools():
+    """Get all tools including builtin and dynamic tools."""
+    if not agent:
+        return {"error": "Agent not initialized"}
+    
+    try:
+        # 获取内置工具
+        builtin_tools = []
+        for name, tool in agent.tools.items():
+            builtin_tools.append({
+                "name": name,
+                "description": tool.description,
+                "usage_count": getattr(tool, 'usage_count', 0),
+                "type": "builtin",
+                "category": getattr(tool, 'category', 'utility')
+            })
+        
+        # 获取动态工具
+        dynamic_tools = []
+        if hasattr(agent, 'dynamic_tool_creator'):
+            dynamic_stats = agent.dynamic_tool_creator.get_tool_statistics()
+            for tool_info in dynamic_stats.get('tools', []):
+                dynamic_tools.append({
+                    "name": tool_info['name'],
+                    "description": tool_info['description'],
+                    "usage_count": tool_info['usage_count'],
+                    "success_rate": tool_info['success_rate'],
+                    "type": "dynamic",
+                    "category": "dynamic",
+                    "created_at": tool_info['created_at']
+                })
+        
+        return {
+            "success": True,
+            "data": {
+                "builtin_tools": builtin_tools,
+                "dynamic_tools": dynamic_tools,
+                "total_builtin": len(builtin_tools),
+                "total_dynamic": len(dynamic_tools),
+                "total_tools": len(builtin_tools) + len(dynamic_tools)
+            }
+        }
+    except Exception as e:
+        logging.error(f"Failed to get all tools: {e}")
+        return {"success": False, "error": str(e)}
 
 @app.post("/api/chat")
 async def chat(request: ChatMessage):

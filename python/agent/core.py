@@ -237,6 +237,27 @@ class Agent:
                         await self._send_log_to_frontend(f"   开始执行...")
                         tool_result = await tool.execute(**tool_params)
                         
+                        # 检查是否需要自动安装缺失的包
+                        if (tool_name == "code" and not tool_result.success and 
+                            "ModuleNotFoundError" in str(tool_result.error)):
+                            
+                            # 尝试从错误信息中提取包名
+                            import re
+                            module_match = re.search(r"No module named '([^']+)'", str(tool_result.error))
+                            if module_match:
+                                missing_module = module_match.group(1)
+                                logging.info(f"   检测到缺失模块: {missing_module}")
+                                await self._send_log_to_frontend(f"   检测到缺失模块: {missing_module}")
+                                
+                                # 尝试安装缺失的包
+                                install_result = await self._try_install_missing_package(missing_module)
+                                if install_result["success"]:
+                                    logging.info(f"   包安装成功，重新执行代码...")
+                                    await self._send_log_to_frontend(f"   包安装成功，重新执行代码...")
+                                    
+                                    # 重新执行代码
+                                    tool_result = await tool.execute(**tool_params)
+                        
                         # 显示工具输出
                         if tool_result.success:
                             if hasattr(tool_result.data, 'get') and tool_result.data.get('stdout'):
@@ -323,11 +344,25 @@ class Agent:
 
 {tool_summary}
 
+重要指导原则：
+1. 如果任务需要Python包但可能缺失，优先使用terminal工具安装包
+2. 如果代码执行失败且错误提示缺少模块，使用terminal工具安装相应包
+3. 对于系统级操作（安装、配置、文件操作），优先使用terminal工具
+4. 对于代码执行和计算任务，使用code工具
+5. 对于网络搜索和信息获取，使用search工具
+
+工具选择策略：
+- terminal: 用于系统命令、包安装、文件操作、环境配置
+- code: 用于Python代码执行、计算、数据处理
+- search: 用于网络搜索、信息查询
+- enhanced_terminal: 用于复杂的终端操作
+
 对于每个任务，请仔细分析：
 1. 用户想要完成什么
-2. 哪些工具有能力帮助
-3. 每个选定工具的最佳参数
-4. 工具执行的顺序
+2. 是否需要安装依赖包
+3. 哪些工具有能力帮助
+4. 每个选定工具的最佳参数
+5. 工具执行的顺序
 
 重要：只回复有效的JSON，不要添加其他文本。只能使用上面列出的工具。
 
@@ -734,3 +769,35 @@ JSON格式：
         except Exception as e:
             logging.error(f"LLM验证工具规范失败: {e}")
             return None 
+
+    async def _try_install_missing_package(self, package_name: str) -> Dict[str, Any]:
+        """尝试安装缺失的包"""
+        try:
+            logging.info(f"尝试安装包: {package_name}")
+            await self._send_log_to_frontend(f"尝试安装包: {package_name}")
+            
+            # 获取终端工具
+            terminal_tool = self.get_tool("terminal")
+            if not terminal_tool:
+                logging.error("终端工具不可用")
+                return {"success": False, "error": "终端工具不可用"}
+            
+            # 构建安装命令
+            install_command = f"pip install {package_name}"
+            
+            # 执行安装命令
+            install_result = await terminal_tool.execute(command=install_command)
+            
+            if install_result.success:
+                logging.info(f"包 {package_name} 安装成功")
+                await self._send_log_to_frontend(f"包 {package_name} 安装成功")
+                return {"success": True, "message": f"包 {package_name} 安装成功"}
+            else:
+                logging.error(f"包 {package_name} 安装失败: {install_result.error}")
+                await self._send_log_to_frontend(f"包 {package_name} 安装失败: {install_result.error}")
+                return {"success": False, "error": f"包安装失败: {install_result.error}"}
+                
+        except Exception as e:
+            logging.error(f"安装包时发生错误: {e}")
+            await self._send_log_to_frontend(f"安装包时发生错误: {e}")
+            return {"success": False, "error": str(e)} 

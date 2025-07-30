@@ -850,9 +850,34 @@
                     </form>
                 </div>
                 
+                <!-- 工具统计 -->
+                <div class="tools-statistics">
+                    <h4>工具统计</h4>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <span class="stat-label">内置工具</span>
+                            <span class="stat-value" id="builtinToolsCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">动态工具</span>
+                            <span class="stat-value" id="dynamicToolsCount">0</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-label">总工具数</span>
+                            <span class="stat-value" id="totalToolsCount">0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 内置工具列表 -->
+                <div class="builtin-tools-list">
+                    <h4>内置工具</h4>
+                    <div id="builtinToolsList" class="tools-grid"></div>
+                </div>
+                
                 <!-- 动态工具列表 -->
                 <div class="dynamic-tools-list">
-                    <h4>已创建的工具</h4>
+                    <h4>动态工具</h4>
                     <div id="dynamicToolsList" class="tools-grid"></div>
                 </div>
             </div>
@@ -1077,6 +1102,93 @@
         font-size: 12px;
         color: #9ca3af;
     }
+
+    /* 工具统计样式 */
+    .tools-statistics {
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: #2a2b32;
+        border-radius: 8px;
+        border: 1px solid #4a4b53;
+    }
+
+    .tools-statistics h4 {
+        color: #ececf1;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 12px;
+        background-color: #343541;
+        border-radius: 6px;
+        border: 1px solid #4a4b53;
+    }
+
+    .stat-label {
+        display: block;
+        color: #9ca3af;
+        font-size: 12px;
+        margin-bottom: 4px;
+    }
+
+    .stat-value {
+        display: block;
+        color: #ececf1;
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    /* 内置工具样式 */
+    .builtin-tools-list {
+        margin-bottom: 24px;
+    }
+
+    .builtin-tools-list h4 {
+        color: #ececf1;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+
+    .builtin-tool-item {
+        background-color: #2a2b32;
+        border: 1px solid #4a4b53;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 12px;
+        transition: border-color 0.2s ease;
+    }
+
+    .builtin-tool-item:hover {
+        border-color: #10a37f;
+    }
+
+    .builtin-tool-item h5 {
+        color: #ececf1;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+
+    .builtin-tool-item p {
+        color: #d1d5db;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .tool-type {
+        background-color: #10a37f;
+        color: white;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 10px;
+    }
     </style>
 
     <script>
@@ -1085,7 +1197,7 @@
         const panel = document.getElementById('toolManagementPanel');
         if (panel.style.display === 'none') {
             panel.style.display = 'flex';
-            loadDynamicTools();
+            loadAllTools(); // 加载所有工具
         } else {
             panel.style.display = 'none';
         }
@@ -1110,7 +1222,7 @@
             
             if (result.success) {
                 addMessage('system', `工具 ${result.tool_name} 创建成功！`, 'system');
-                loadDynamicTools();
+                loadAllTools(); // 刷新工具列表
                 // 清空表单
                 document.getElementById('toolCreationForm').reset();
             } else {
@@ -1121,27 +1233,64 @@
         }
     }
 
-    async function loadDynamicTools() {
+    async function loadAllTools() {
         try {
-            const response = await fetch('/api/tools/dynamic');
+            // 加载所有工具（包括内置和动态）
+            const response = await fetch('/api/tools/all');
             const result = await response.json();
             
             if (result.success) {
-                displayDynamicTools(result.data);
+                displayAllTools(result.data);
             } else {
-                console.error('加载动态工具失败:', result.error);
+                console.error('加载工具失败:', result.error);
             }
         } catch (error) {
-            console.error('加载动态工具失败:', error);
+            console.error('加载工具失败:', error);
         }
     }
 
-    function displayDynamicTools(toolsData) {
+    function displayAllTools(toolsData) {
+        // 更新统计信息
+        document.getElementById('builtinToolsCount').textContent = toolsData.total_builtin;
+        document.getElementById('dynamicToolsCount').textContent = toolsData.total_dynamic;
+        document.getElementById('totalToolsCount').textContent = toolsData.total_tools;
+        
+        // 显示内置工具
+        displayBuiltinTools(toolsData.builtin_tools);
+        
+        // 显示动态工具
+        displayDynamicTools(toolsData.dynamic_tools);
+    }
+
+    function displayBuiltinTools(tools) {
+        const container = document.getElementById('builtinToolsList');
+        container.innerHTML = '';
+        
+        if (tools && tools.length > 0) {
+            tools.forEach(tool => {
+                const toolElement = document.createElement('div');
+                toolElement.className = 'builtin-tool-item';
+                toolElement.innerHTML = `
+                    <h5>${tool.name}</h5>
+                    <p>${tool.description}</p>
+                    <div class="tool-stats">
+                        <span>使用次数: ${tool.usage_count || 0}</span>
+                        <span class="tool-type">内置工具</span>
+                    </div>
+                `;
+                container.appendChild(toolElement);
+            });
+        } else {
+            container.innerHTML = '<p style="color: #9ca3af; text-align: center;">暂无内置工具</p>';
+        }
+    }
+
+    function displayDynamicTools(tools) {
         const container = document.getElementById('dynamicToolsList');
         container.innerHTML = '';
         
-        if (toolsData.tools && toolsData.tools.length > 0) {
-            toolsData.tools.forEach(tool => {
+        if (tools && tools.length > 0) {
+            tools.forEach(tool => {
                 const toolElement = document.createElement('div');
                 toolElement.className = 'dynamic-tool-item';
                 toolElement.innerHTML = `
@@ -1174,7 +1323,7 @@
                 
                 if (result.success) {
                     addMessage('system', `工具 ${toolName} 已删除`, 'system');
-                    loadDynamicTools();
+                    loadAllTools(); // 刷新工具列表
                 } else {
                     addMessage('error', `删除工具失败: ${result.error}`);
                 }

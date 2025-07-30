@@ -400,6 +400,16 @@
                 <ul class="chat-history" id="chatHistory">
                     <!-- 聊天历史将在这里显示 -->
                 </ul>
+                
+                <!-- 工具管理按钮 -->
+                <div class="tool-management-section">
+                    <button class="tool-management-btn" onclick="toggleToolManagement()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>
+                        </svg>
+                        工具管理
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -801,6 +811,412 @@
             // 添加欢迎消息
             addMessage('assistant', '你好！我是Aegis Agent，你的AI助手。我可以帮助你执行各种任务，包括代码执行、文件操作、网络搜索等。请告诉我你需要什么帮助？');
         };
+    </script>
+    
+    <!-- 工具管理面板 -->
+    <div class="tool-management-panel" id="toolManagementPanel" style="display: none;">
+        <div class="tool-panel-content">
+            <div class="tool-panel-header">
+                <h3>动态工具管理</h3>
+                <button class="close-btn" onclick="toggleToolManagement()">×</button>
+            </div>
+            
+            <div class="tool-panel-body">
+                <!-- 工具创建表单 -->
+                <div class="tool-creation-form">
+                    <h4>创建新工具</h4>
+                    <form id="toolCreationForm">
+                        <div class="form-group">
+                            <label for="toolName">工具名称</label>
+                            <input type="text" id="toolName" placeholder="例如: calculator" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="toolDescription">工具描述</label>
+                            <textarea id="toolDescription" placeholder="描述工具的功能" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="toolCode">Python代码</label>
+                            <textarea id="toolCode" placeholder="def calculate(a, b, operation):&#10;    if operation == 'add':&#10;        return a + b&#10;    # ... 其他代码" required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="toolParameters">参数定义 (JSON格式)</label>
+                            <textarea id="toolParameters" placeholder='{"a": "第一个数字", "b": "第二个数字", "operation": "操作类型"}'></textarea>
+                        </div>
+                        
+                        <button type="submit" class="create-tool-btn">创建工具</button>
+                    </form>
+                </div>
+                
+                <!-- 动态工具列表 -->
+                <div class="dynamic-tools-list">
+                    <h4>已创建的工具</h4>
+                    <div id="dynamicToolsList" class="tools-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+    /* 工具管理样式 */
+    .tool-management-section {
+        padding: 16px;
+        border-top: 1px solid #4a4b53;
+    }
+
+    .tool-management-btn {
+        width: 100%;
+        padding: 12px 16px;
+        background-color: transparent;
+        border: 1px solid #565869;
+        border-radius: 6px;
+        color: #ececf1;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .tool-management-btn:hover {
+        background-color: #2a2b32;
+    }
+
+    .tool-management-panel {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .tool-panel-content {
+        background-color: #343541;
+        border-radius: 12px;
+        width: 90%;
+        max-width: 800px;
+        max-height: 90%;
+        overflow-y: auto;
+        border: 1px solid #4a4b53;
+    }
+
+    .tool-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 24px 24px 16px 24px;
+        border-bottom: 1px solid #4a4b53;
+    }
+
+    .tool-panel-header h3 {
+        color: #ececf1;
+        font-size: 20px;
+        margin: 0;
+    }
+
+    .close-btn {
+        background: none;
+        border: none;
+        color: #ececf1;
+        font-size: 24px;
+        cursor: pointer;
+        padding: 4px 8px;
+        border-radius: 4px;
+        transition: background-color 0.2s ease;
+    }
+
+    .close-btn:hover {
+        background-color: #2a2b32;
+    }
+
+    .tool-panel-body {
+        padding: 24px;
+    }
+
+    .tool-creation-form {
+        margin-bottom: 32px;
+    }
+
+    .tool-creation-form h4 {
+        color: #ececf1;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #ececf1;
+        font-weight: 500;
+        font-size: 14px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px;
+        background-color: #40414f;
+        border: 1px solid #565869;
+        border-radius: 6px;
+        color: #ececf1;
+        font-size: 14px;
+        resize: vertical;
+        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #10a37f;
+    }
+
+    .form-group textarea {
+        min-height: 100px;
+    }
+
+    .create-tool-btn {
+        background-color: #10a37f;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        font-size: 14px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .create-tool-btn:hover {
+        background-color: #0d8c6d;
+    }
+
+    .dynamic-tools-list h4 {
+        color: #ececf1;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+
+    .tools-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 16px;
+    }
+
+    .dynamic-tool-item {
+        background-color: #40414f;
+        border: 1px solid #565869;
+        border-radius: 8px;
+        padding: 16px;
+        transition: border-color 0.2s ease;
+    }
+
+    .dynamic-tool-item:hover {
+        border-color: #10a37f;
+    }
+
+    .dynamic-tool-item h5 {
+        color: #ececf1;
+        margin-bottom: 8px;
+        font-size: 16px;
+    }
+
+    .dynamic-tool-item p {
+        color: #d1d5db;
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .tool-actions {
+        margin-top: 12px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .tool-action-btn {
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+    .test-btn {
+        background-color: #10a37f;
+        color: white;
+    }
+
+    .test-btn:hover {
+        background-color: #0d8c6d;
+    }
+
+    .delete-btn {
+        background-color: #dc3545;
+        color: white;
+    }
+
+    .delete-btn:hover {
+        background-color: #c82333;
+    }
+
+    .tool-stats {
+        display: flex;
+        gap: 16px;
+        margin-top: 8px;
+        font-size: 12px;
+        color: #9ca3af;
+    }
+    </style>
+
+    <script>
+    // 工具管理功能
+    function toggleToolManagement() {
+        const panel = document.getElementById('toolManagementPanel');
+        if (panel.style.display === 'none') {
+            panel.style.display = 'flex';
+            loadDynamicTools();
+        } else {
+            panel.style.display = 'none';
+        }
+    }
+
+    async function createTool() {
+        const formData = {
+            name: document.getElementById('toolName').value,
+            description: document.getElementById('toolDescription').value,
+            code: document.getElementById('toolCode').value,
+            parameters: JSON.parse(document.getElementById('toolParameters').value || '{}')
+        };
+        
+        try {
+            const response = await fetch('/api/tools/create', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(formData)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                addMessage('system', `工具 ${result.tool_name} 创建成功！`, 'system');
+                loadDynamicTools();
+                // 清空表单
+                document.getElementById('toolCreationForm').reset();
+            } else {
+                addMessage('error', `工具创建失败: ${result.error}`);
+            }
+        } catch (error) {
+            addMessage('error', `创建工具时发生错误: ${error}`);
+        }
+    }
+
+    async function loadDynamicTools() {
+        try {
+            const response = await fetch('/api/tools/dynamic');
+            const result = await response.json();
+            
+            if (result.success) {
+                displayDynamicTools(result.data);
+            } else {
+                console.error('加载动态工具失败:', result.error);
+            }
+        } catch (error) {
+            console.error('加载动态工具失败:', error);
+        }
+    }
+
+    function displayDynamicTools(toolsData) {
+        const container = document.getElementById('dynamicToolsList');
+        container.innerHTML = '';
+        
+        if (toolsData.tools && toolsData.tools.length > 0) {
+            toolsData.tools.forEach(tool => {
+                const toolElement = document.createElement('div');
+                toolElement.className = 'dynamic-tool-item';
+                toolElement.innerHTML = `
+                    <h5>${tool.name}</h5>
+                    <p>${tool.description}</p>
+                    <div class="tool-stats">
+                        <span>使用次数: ${tool.usage_count}</span>
+                        <span>成功率: ${(tool.success_rate * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="tool-actions">
+                        <button class="tool-action-btn test-btn" onclick="testTool('${tool.name}')">测试</button>
+                        <button class="tool-action-btn delete-btn" onclick="deleteTool('${tool.name}')">删除</button>
+                    </div>
+                `;
+                container.appendChild(toolElement);
+            });
+        } else {
+            container.innerHTML = '<p style="color: #9ca3af; text-align: center;">暂无动态工具</p>';
+        }
+    }
+
+    async function deleteTool(toolName) {
+        if (confirm(`确定要删除工具 ${toolName} 吗？`)) {
+            try {
+                const response = await fetch(`/api/tools/dynamic/${toolName}`, {
+                    method: 'DELETE'
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    addMessage('system', `工具 ${toolName} 已删除`, 'system');
+                    loadDynamicTools();
+                } else {
+                    addMessage('error', `删除工具失败: ${result.error}`);
+                }
+            } catch (error) {
+                addMessage('error', `删除工具时发生错误: ${error}`);
+            }
+        }
+    }
+
+    async function testTool(toolName) {
+        try {
+            // 简单的测试参数
+            const testParams = { test: "value" };
+            
+            const response = await fetch(`/api/tools/dynamic/${toolName}/test`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(testParams)
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                addMessage('system', `工具 ${toolName} 测试成功`, 'system');
+            } else {
+                addMessage('error', `工具 ${toolName} 测试失败: ${result.error}`);
+            }
+        } catch (error) {
+            addMessage('error', `测试工具时发生错误: ${error}`);
+        }
+    }
+
+    // 绑定表单提交事件
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('toolCreationForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                createTool();
+            });
+        }
+    });
     </script>
 </body>
 </html> 

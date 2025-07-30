@@ -6,6 +6,7 @@ Provides the core Agent class and task execution logic.
 import asyncio
 import logging
 import uuid
+import json
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
@@ -44,6 +45,9 @@ class Agent:
         
         # Initialize tools first
         self._initialize_default_tools()
+        
+        # Initialize dynamic tool creator
+        self._initialize_dynamic_tool_creator()
         
         # Load system prompt after tools are initialized
         self.system_prompt = self._load_system_prompt()
@@ -184,8 +188,26 @@ class Agent:
             }
     
     async def _execute_task_internal(self, task_analysis: Dict) -> Dict:
+        """内部任务执行逻辑"""
         try:
-            task_description = self.current_task["description"]
+            task_description = task_analysis.get("task_description", "")
+            context = task_analysis.get("context", {})
+            
+            # 检查是否需要创建新工具
+            tool_creation_spec = await self._analyze_tool_creation_need(task_description)
+            
+            if tool_creation_spec:
+                logging.info(f"检测到需要创建新工具: {tool_creation_spec.get('name')}")
+                
+                # 创建新工具
+                creation_result = await self.create_new_tool(tool_creation_spec)
+                
+                if creation_result["success"]:
+                    logging.info(f"新工具创建成功: {creation_result['tool_name']}")
+                    # 重新分析任务，使用新创建的工具
+                    task_analysis = await self._analyze_task(task_description, context)
+                else:
+                    logging.warning(f"工具创建失败: {creation_result['error']}")
             
             # Select tools using LLM
             logging.info(f"LLM分析任务: {task_description}")
@@ -514,4 +536,201 @@ JSON格式：
             from web.main import websocket_manager
             await websocket_manager.broadcast_log(message, level)
         except Exception as e:
-            logging.error(f"Failed to send log to frontend: {e}") 
+            logging.error(f"Failed to send log to frontend: {e}")
+    
+    def _initialize_dynamic_tool_creator(self):
+        """初始化动态工具创建器"""
+        try:
+            from .dynamic_tool_creator import dynamic_tool_creator
+            self.dynamic_tool_creator = dynamic_tool_creator
+            
+            # 加载已存在的动态工具
+            self._load_dynamic_tools()
+            
+            logging.info("Dynamic tool creator initialized")
+        except Exception as e:
+            logging.error(f"Failed to initialize dynamic tool creator: {e}")
+    
+    def _load_dynamic_tools(self):
+        """加载动态工具"""
+        try:
+            dynamic_tools = self.dynamic_tool_creator.list_dynamic_tools()
+            for tool_name in dynamic_tools:
+                dynamic_tool = self._import_dynamic_tool(tool_name)
+                if dynamic_tool:
+                    self.add_tool(tool_name, dynamic_tool)
+                    logging.info(f"Loaded dynamic tool: {tool_name}")
+        except Exception as e:
+            logging.error(f"Failed to load dynamic tools: {e}")
+    
+    def _import_dynamic_tool(self, tool_name: str) -> Optional[BaseTool]:
+        """导入动态工具"""
+        try:
+            import importlib.util
+            from pathlib import Path
+            
+            tool_file = Path("python/tools/dynamic") / f"dynamic_{tool_name}.py"
+            if tool_file.exists():
+                spec = importlib.util.spec_from_file_location(f"dynamic_{tool_name}", tool_file)
+                module = importlib.util.module_from_spec(spec)
+                spec.loader.exec_module(module)
+                
+                # 查找工具类
+                tool_class_name = f"Dynamic{tool_name.capitalize()}Tool"
+                if hasattr(module, tool_class_name):
+                    tool_class = getattr(module, tool_class_name)
+                    return tool_class()
+                
+                # 如果没有找到特定类名，查找任何继承自BaseTool的类
+                for attr_name in dir(module):
+                    attr = getattr(module, attr_name)
+                    if (isinstance(attr, type) and 
+                        issubclass(attr, BaseTool) and 
+                        attr != BaseTool):
+                        return attr()
+            
+            return None
+        except Exception as e:
+            logging.error(f"Failed to import dynamic tool {tool_name}: {e}")
+            return None
+    
+    async def _analyze_tool_creation_need(self, task_description: str) -> Optional[Dict[str, Any]]:
+        """分析是否需要创建新工具"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            
+            llm_client = DeepSeekClient()
+            
+            analysis_prompt = f"""
+分析以下任务是否需要创建新工具：
+
+任务描述：{task_description}
+
+当前可用工具：
+{self._generate_tool_summary_for_llm()}
+
+请判断：
+1. 现有工具是否能完成此任务？
+2. 是否需要创建新工具？
+3. 如果需要，请提供工具规范
+
+返回JSON格式：
+{{
+    "need_new_tool": true/false,
+    "reason": "原因",
+    "tool_spec": {{
+        "name": "工具名称",
+        "description": "工具描述",
+        "code": "Python代码",
+        "parameters": {{"param1": "类型描述"}}
+    }}
+}}
+"""
+            
+            response = await llm_client.chat_completion(analysis_prompt)
+            
+            try:
+                analysis_result = json.loads(response)
+                
+                if analysis_result.get("need_new_tool", False):
+                    return analysis_result.get("tool_spec")
+                else:
+                    return None
+                    
+            except json.JSONDecodeError:
+                logging.error("工具创建需求分析响应格式错误")
+                return None
+                
+        except Exception as e:
+            logging.error(f"分析工具创建需求失败: {e}")
+            return None
+    
+    async def create_new_tool(self, tool_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """Agent创建新工具的方法"""
+        try:
+            logging.info(f"Agent {self.config.name} 开始创建新工具: {tool_spec.get('name', 'unknown')}")
+            
+            # 使用LLM验证工具规范
+            validated_spec = await self._validate_tool_spec_with_llm(tool_spec)
+            
+            if not validated_spec:
+                return {
+                    "success": False,
+                    "error": "工具规范验证失败"
+                }
+            
+            # 创建工具
+            new_tool = await self.dynamic_tool_creator.create_tool_from_spec(validated_spec)
+            
+            if new_tool:
+                # 注册到工具管理器
+                self.add_tool(validated_spec["name"], new_tool)
+                
+                # 重新加载系统提示词以包含新工具
+                self.system_prompt = self._load_system_prompt()
+                
+                logging.info(f"成功创建工具: {validated_spec['name']}")
+                return {
+                    "success": True,
+                    "tool_name": validated_spec["name"],
+                    "message": f"工具 {validated_spec['name']} 创建成功"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "工具创建失败"
+                }
+                
+        except Exception as e:
+            logging.error(f"创建工具时发生错误: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    async def _validate_tool_spec_with_llm(self, tool_spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """使用LLM验证工具规范"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            
+            llm_client = DeepSeekClient()
+            
+            validation_prompt = f"""
+请验证以下工具规范是否安全、完整和有效：
+
+工具规范：
+{json.dumps(tool_spec, ensure_ascii=False, indent=2)}
+
+请检查：
+1. 代码安全性（是否包含危险操作）
+2. 参数完整性（是否定义了必要的参数）
+3. 功能合理性（工具功能是否明确）
+4. 命名规范性（工具名称是否合适）
+
+请返回JSON格式的验证结果：
+{{
+    "is_valid": true/false,
+    "validated_spec": {{...}},
+    "issues": ["问题1", "问题2"],
+    "suggestions": ["建议1", "建议2"]
+}}
+"""
+            
+            response = await llm_client.chat_completion(validation_prompt)
+            
+            try:
+                validation_result = json.loads(response)
+                
+                if validation_result.get("is_valid", False):
+                    return validation_result.get("validated_spec", tool_spec)
+                else:
+                    logging.warning(f"工具规范验证失败: {validation_result.get('issues', [])}")
+                    return None
+                    
+            except json.JSONDecodeError:
+                logging.error("LLM验证响应格式错误")
+                return None
+                
+        except Exception as e:
+            logging.error(f"LLM验证工具规范失败: {e}")
+            return None 

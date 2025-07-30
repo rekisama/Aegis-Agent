@@ -86,7 +86,7 @@ for handler in logging.root.handlers:
         handler.setStream(sys.stdout)
 
 # Setup templates
-templates = Jinja2Templates(directory="web/templates")
+templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
 # Mount static files (if directory exists)
 static_dir = Path("web/static")
@@ -108,6 +108,16 @@ class WebAgentConfig(BaseModel):
     max_tokens: int = 2000
     auto_fix: bool = True
     auto_install: bool = True
+
+# Pydantic models for tool management
+class ToolCreationRequest(BaseModel):
+    name: str
+    description: str
+    code: str
+    parameters: Dict[str, Any] = {}
+
+class ToolDeletionRequest(BaseModel):
+    tool_name: str
 
 async def initialize_agent():
     """Initialize the agent."""
@@ -482,5 +492,113 @@ async def test_connection():
     print("🔍 测试连接被调用")
     logging.info("🔍 测试连接被调用")
     return {"message": "服务器连接正常"} 
+
+# Tool management API endpoints
+@app.post("/api/tools/create")
+async def create_tool(request: ToolCreationRequest):
+    """创建新工具"""
+    try:
+        if not agent:
+            return {"success": False, "error": "Agent not initialized"}
+        
+        tool_spec = {
+            "name": request.name,
+            "description": request.description,
+            "code": request.code,
+            "parameters": request.parameters
+        }
+        
+        result = await agent.create_new_tool(tool_spec)
+        return result
+        
+    except Exception as e:
+        logging.error(f"Failed to create tool: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/tools/dynamic")
+async def list_dynamic_tools():
+    """获取动态工具列表"""
+    try:
+        if not agent:
+            return {"success": False, "error": "Agent not initialized"}
+        
+        stats = agent.dynamic_tool_creator.get_tool_statistics()
+        return {"success": True, "data": stats}
+        
+    except Exception as e:
+        logging.error(f"Failed to list dynamic tools: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.delete("/api/tools/dynamic/{tool_name}")
+async def delete_dynamic_tool(tool_name: str):
+    """删除动态工具"""
+    try:
+        if not agent:
+            return {"success": False, "error": "Agent not initialized"}
+        
+        success = agent.dynamic_tool_creator.delete_tool(tool_name)
+        
+        if success:
+            # 从agent工具列表中移除
+            if tool_name in agent.tools:
+                del agent.tools[tool_name]
+            
+            # 重新加载系统提示词
+            agent.system_prompt = agent._load_system_prompt()
+        
+        return {"success": success}
+        
+    except Exception as e:
+        logging.error(f"Failed to delete dynamic tool: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.get("/api/tools/dynamic/{tool_name}/info")
+async def get_dynamic_tool_info(tool_name: str):
+    """获取动态工具详细信息"""
+    try:
+        if not agent:
+            return {"success": False, "error": "Agent not initialized"}
+        
+        tool_info = agent.dynamic_tool_creator.get_tool_info(tool_name)
+        
+        if tool_info:
+            return {"success": True, "data": {
+                "name": tool_info.name,
+                "description": tool_info.description,
+                "parameters": tool_info.parameters,
+                "usage_count": tool_info.usage_count,
+                "success_rate": tool_info.success_rate,
+                "created_at": tool_info.created_at
+            }}
+        else:
+            return {"success": False, "error": "Tool not found"}
+            
+    except Exception as e:
+        logging.error(f"Failed to get tool info: {e}")
+        return {"success": False, "error": str(e)}
+
+@app.post("/api/tools/dynamic/{tool_name}/test")
+async def test_dynamic_tool(tool_name: str, parameters: Dict[str, Any]):
+    """测试动态工具"""
+    try:
+        if not agent:
+            return {"success": False, "error": "Agent not initialized"}
+        
+        tool = agent.get_tool(tool_name)
+        if not tool:
+            return {"success": False, "error": "Tool not found"}
+        
+        # 执行工具
+        result = await tool.execute(**parameters)
+        
+        return {
+            "success": result.success,
+            "data": result.data,
+            "error": result.error
+        }
+        
+    except Exception as e:
+        logging.error(f"Failed to test tool: {e}")
+        return {"success": False, "error": str(e)} 
 
 

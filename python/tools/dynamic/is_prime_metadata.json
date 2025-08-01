@@ -1,0 +1,12 @@
+{
+  "name": "is_prime",
+  "description": "判断一个数字是否为素数",
+  "code": "def is_prime(n):\n    if n <= 1:\n        return False\n    if n <= 3:\n        return True\n    if n % 2 == 0 or n % 3 == 0:\n        return False\n    i = 5\n    w = 2\n    while i * i <= n:\n        if n % i == 0:\n            return False\n        i += w\n        w = 6 - w\n    return True",
+  "parameters": {
+    "n": "int"
+  },
+  "category": "utility",
+  "created_at": "2025-07-31T10:42:37.998491",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

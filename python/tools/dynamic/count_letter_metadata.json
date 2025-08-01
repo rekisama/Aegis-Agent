@@ -1,0 +1,13 @@
+{
+  "name": "count_letter",
+  "description": "计算单词中特定字母的出现次数",
+  "code": "def count_letter(word, letter):\n    return word.lower().count(letter.lower())",
+  "parameters": {
+    "word": "string",
+    "letter": "string"
+  },
+  "category": "utility",
+  "created_at": "2025-07-31T17:23:59.427446",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

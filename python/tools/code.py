@@ -167,7 +167,8 @@ class CodeExecutionTool(BaseTool):
                     capture_output=True,
                     text=True,
                     timeout=timeout,
-                    encoding='utf-8'
+                    encoding='utf-8',
+                    errors='replace'  # 添加错误处理
                 )
                 stdout_str = result.stdout
                 stderr_str = result.stderr
@@ -176,7 +177,8 @@ class CodeExecutionTool(BaseTool):
                 result = subprocess.run(
                     [sys.executable, temp_file],
                     timeout=timeout,
-                    encoding='utf-8'
+                    encoding='utf-8',
+                    errors='replace'  # 添加错误处理
                 )
                 stdout_str = ""
                 stderr_str = ""
@@ -185,10 +187,10 @@ class CodeExecutionTool(BaseTool):
             execution_time = asyncio.get_event_loop().time() - start_time
             
             # Limit output size
-            if len(stdout_str) > self.max_output_size:
+            if stdout_str and len(stdout_str) > self.max_output_size:
                 stdout_str = stdout_str[:self.max_output_size] + "... (truncated)"
             
-            if len(stderr_str) > self.max_output_size:
+            if stderr_str and len(stderr_str) > self.max_output_size:
                 stderr_str = stderr_str[:self.max_output_size] + "... (truncated)"
             
             if return_code == 0:

@@ -88,6 +88,29 @@
         "safe_modules": ["os", "sys", "json", "datetime", "math", "random", "re"],
         "dangerous_modules": ["subprocess", "eval", "exec", "compile", "__import__"]
       }
+    },
+    "web_reader": {
+      "name": "web_reader",
+      "description": "获取网页内容并提取信息（标题、文本等）",
+      "class": "WebReaderTool",
+      "module": "python.tools.web_reader",
+      "aliases": ["webpage_reader", "url_reader", "html_parser"],
+      "category": "information",
+      "enabled": true,
+      "auto_load": true,
+      "version": "1.0.0",
+      "author": "Aegis Agent Team",
+      "dependencies": ["aiohttp"],
+      "config_schema": {
+        "timeout": {"type": "int", "default": 30, "description": "Request timeout in seconds"},
+        "extract_title": {"type": "bool", "default": true, "description": "Extract page title"},
+        "extract_text": {"type": "bool", "default": false, "description": "Extract text content"}
+      },
+      "metadata": {
+        "supported_protocols": ["http", "https"],
+        "features": ["title_extraction", "text_extraction", "url_validation"],
+        "max_timeout": 60
+      }
     }
   },
   "categories": {

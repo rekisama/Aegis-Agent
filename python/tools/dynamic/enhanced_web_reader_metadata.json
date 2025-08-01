@@ -1,0 +1,15 @@
+{
+  "name": "enhanced_web_reader",
+  "description": "改进版的web_reader工具，具有更好的错误处理和重试机制",
+  "code": "import requests\nfrom urllib.parse import urlparse\nfrom requests.exceptions import RequestException\nimport time\n\ndef enhanced_web_reader(url, max_retries=3, retry_delay=1, timeout=10):\n    \"\"\"\n    改进版的网页读取工具，具有错误处理和重试机制\n    \n    参数:\n        url (str): 要访问的网页URL\n        max_retries (int): 最大重试次数，默认为3\n        retry_delay (int): 重试间隔时间(秒)，默认为1\n        timeout (int): 请求超时时间(秒)，默认为10\n    \n    返回:\n        dict: 包含网页内容和状态信息，或错误信息\n    \"\"\"\n    if not urlparse(url).scheme:\n        url = 'http://' + url\n    \n    headers = {\n        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3'\n    }\n    \n    for attempt in range(max_retries + 1):\n        try:\n            response = requests.get(url, headers=headers, timeout=timeout)\n            response.raise_for_status()\n            \n            return {\n                'status': 'success',\n                'url': url,\n                'status_code': response.status_code,\n                'content': response.text,\n                'attempts': attempt + 1\n            }\n            \n        except RequestException as e:\n            if attempt == max_retries:\n                return {\n                    'status': 'error',\n                    'url': url,\n                    'error_type': type(e).__name__,\n                    'error_message': str(e),\n                    'attempts': attempt + 1\n                }\n            \n            time.sleep(retry_delay)\n            retry_delay *= 2  # 指数退避\n    \n    return {\n        'status': 'error',\n        'url': url,\n        'error_type': 'MaxRetriesExceeded',\n        'error_message': f'Maximum retries ({max_retries}) exceeded',\n        'attempts': max_retries + 1\n    }",
+  "parameters": {
+    "url": "str",
+    "max_retries": "int",
+    "retry_delay": "int",
+    "timeout": "int"
+  },
+  "category": "utility",
+  "created_at": "2025-08-01T10:03:13.667194",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

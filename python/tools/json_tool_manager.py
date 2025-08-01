@@ -234,13 +234,19 @@ class JSONToolManager:
                 return tool_instance
                 
             except Exception as e:
+                import traceback
+                error_details = traceback.format_exc()
                 tool_info.status = ToolStatus.ERROR
                 tool_info.error_message = str(e)
                 logging.error(f"Failed to create tool instance '{tool_name}': {e}")
+                logging.error(f"详细错误信息: {error_details}")
                 return None
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logging.error(f"Failed to load tool '{tool_name}': {e}")
+            logging.error(f"详细错误信息: {error_details}")
             return None
     
     def _import_tool_class(self, tool_info: ToolInfo) -> Optional[Type[BaseTool]]:
@@ -265,7 +271,10 @@ class JSONToolManager:
             return tool_class
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logging.error(f"Failed to import tool class '{tool_info.class_name}': {e}")
+            logging.error(f"详细错误信息: {error_details}")
             return None
     
     def _check_dependencies(self, tool_info: ToolInfo) -> bool:

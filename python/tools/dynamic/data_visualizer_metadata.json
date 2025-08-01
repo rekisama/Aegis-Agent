@@ -1,0 +1,17 @@
+{
+  "name": "data_visualizer",
+  "description": "数据可视化工具，能够根据输入数据生成各种图表和报告",
+  "code": "import matplotlib.pyplot as plt\nimport seaborn as sns\nimport pandas as pd\n\ndef generate_chart(data, chart_type='bar', title='', x_label='', y_label='', **kwargs):\n    \"\"\"\n    生成图表\n    :param data: 输入数据，可以是字典、列表或pandas DataFrame\n    :param chart_type: 图表类型，支持'bar','line','pie','scatter','hist'\n    :param title: 图表标题\n    :param x_label: x轴标签\n    :param y_label: y轴标签\n    :param kwargs: 其他图表参数\n    :return: 图表对象\n    \"\"\"\n    if isinstance(data, (dict, list)):\n        data = pd.DataFrame(data)\n    \n    plt.figure(figsize=kwargs.get('figsize', (10, 6)))\n    \n    if chart_type == 'bar':\n        sns.barplot(data=data, **kwargs)\n    elif chart_type == 'line':\n        sns.lineplot(data=data, **kwargs)\n    elif chart_type == 'pie':\n        data.plot.pie(**kwargs)\n    elif chart_type == 'scatter':\n        sns.scatterplot(data=data, **kwargs)\n    elif chart_type == 'hist':\n        sns.histplot(data=data, **kwargs)\n    \n    plt.title(title)\n    plt.xlabel(x_label)\n    plt.ylabel(y_label)\n    \n    if kwargs.get('save', False):\n        plt.savefig(kwargs.get('filename', 'chart.png'))\n    \n    return plt.gcf()",
+  "parameters": {
+    "data": "dict|list|pandas.DataFrame",
+    "chart_type": "str",
+    "title": "str",
+    "x_label": "str",
+    "y_label": "str",
+    "kwargs": "dict"
+  },
+  "category": "utility",
+  "created_at": "2025-08-01T10:04:47.004054",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

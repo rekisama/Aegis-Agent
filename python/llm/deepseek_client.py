@@ -136,6 +136,21 @@ class DeepSeekClient:
                 "error": f"Unexpected error: {str(e)}"
             }
     
+    async def chat_completion(
+        self, 
+        user_prompt: str, 
+        system_prompt: str = None,
+        temperature: float = 0.7,
+        max_tokens: int = 4000
+    ) -> Dict[str, Any]:
+        """Chat completion method - alias for generate_response."""
+        return await self.generate_response(
+            prompt=user_prompt,
+            system_prompt=system_prompt,
+            temperature=temperature,
+            max_tokens=max_tokens
+        )
+    
     async def analyze_task(self, task_description: str) -> Dict:
         """Analyze a task and provide structured analysis."""
         try:

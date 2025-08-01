@@ -85,6 +85,10 @@ for handler in logging.root.handlers:
     if isinstance(handler, logging.StreamHandler):
         handler.setStream(sys.stdout)
 
+# 添加控制台输出
+print("Web服务器启动中...")
+logging.info("Web服务器启动中...")
+
 # Setup templates
 templates = Jinja2Templates(directory=str(Path(__file__).parent / "templates"))
 
@@ -145,14 +149,42 @@ async def initialize_agent():
             max_memory_size=10000
         )
         
+        logging.info("开始初始化Agent...")
+        
         # Initialize agent
         agent = Agent(config)
         
-        logging.info("Agent initialized successfully with 4 tools")
+        logging.info("Agent初始化完成，开始检查动态工具...")
+        
+        # 调试：检查动态工具创建器
+        if hasattr(agent, 'dynamic_tool_creator'):
+            logging.info(f"动态工具创建器已初始化")
+            logging.info(f"动态工具列表: {agent.dynamic_tool_creator.list_dynamic_tools()}")
+            logging.info(f"动态工具统计: {agent.dynamic_tool_creator.get_tool_statistics()}")
+            
+            # 检查Agent的工具列表
+            logging.info(f"Agent工具列表: {list(agent.tools.keys())}")
+            logging.info(f"Agent工具总数: {len(agent.tools)}")
+            
+            # 检查是否有动态工具在Agent的工具列表中
+            dynamic_tools_in_agent = [name for name in agent.tools.keys() if name in agent.dynamic_tool_creator.list_dynamic_tools()]
+            logging.info(f"Agent中的动态工具: {dynamic_tools_in_agent}")
+            logging.info(f"Agent中的动态工具数量: {len(dynamic_tools_in_agent)}")
+            
+            # 详细检查每个工具
+            for name, tool in agent.tools.items():
+                is_dynamic = name in agent.dynamic_tool_creator.list_dynamic_tools()
+                logging.info(f"工具 {name}: {'动态' if is_dynamic else '内置'} - {tool.description}")
+        else:
+            logging.warning("Agent没有dynamic_tool_creator属性")
+        
+        logging.info(f"Agent initialized successfully with {len(agent.tools)} tools")
         logging.info(f"Agent config: {config}")
         
     except Exception as e:
         logging.error(f"Failed to initialize agent: {e}")
+        import traceback
+        traceback.print_exc()
         raise
 
 # 删除旧的startup事件，现在使用lifespan
@@ -203,31 +235,43 @@ async def get_all_tools():
         return {"error": "Agent not initialized"}
     
     try:
-        # 获取内置工具
+        # 获取动态工具列表
+        dynamic_tool_names = []
+        if hasattr(agent, 'dynamic_tool_creator'):
+            dynamic_tool_names = agent.dynamic_tool_creator.list_dynamic_tools()
+            logging.info(f"动态工具名称列表: {dynamic_tool_names}")
+        
+        # 分类工具
         builtin_tools = []
+        dynamic_tools = []
+        
         for name, tool in agent.tools.items():
-            builtin_tools.append({
+            tool_info = {
                 "name": name,
                 "description": tool.description,
                 "usage_count": getattr(tool, 'usage_count', 0),
-                "type": "builtin",
                 "category": getattr(tool, 'category', 'utility')
-            })
+            }
+            
+            if name in dynamic_tool_names:
+                # 这是动态工具
+                tool_info["type"] = "dynamic"
+                tool_info["category"] = "dynamic"
+                
+                # 获取动态工具的额外信息
+                if hasattr(agent, 'dynamic_tool_creator'):
+                    tool_metadata = agent.dynamic_tool_creator.get_tool_info(name)
+                    if tool_metadata:
+                        tool_info["success_rate"] = tool_metadata.success_rate
+                        tool_info["created_at"] = tool_metadata.created_at
+                
+                dynamic_tools.append(tool_info)
+            else:
+                # 这是内置工具
+                tool_info["type"] = "builtin"
+                builtin_tools.append(tool_info)
         
-        # 获取动态工具
-        dynamic_tools = []
-        if hasattr(agent, 'dynamic_tool_creator'):
-            dynamic_stats = agent.dynamic_tool_creator.get_tool_statistics()
-            for tool_info in dynamic_stats.get('tools', []):
-                dynamic_tools.append({
-                    "name": tool_info['name'],
-                    "description": tool_info['description'],
-                    "usage_count": tool_info['usage_count'],
-                    "success_rate": tool_info['success_rate'],
-                    "type": "dynamic",
-                    "category": "dynamic",
-                    "created_at": tool_info['created_at']
-                })
+        logging.info(f"分类结果 - 内置工具: {len(builtin_tools)}, 动态工具: {len(dynamic_tools)}")
         
         return {
             "success": True,
@@ -257,10 +301,14 @@ async def chat(request: ChatMessage):
             "metadata": result.get("metadata", {})
         }
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"Chat error: {e}")
+        logger.error(f"详细错误信息: {error_details}")
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "details": error_details
         }
 
 @app.post("/api/execute_tool")
@@ -282,10 +330,14 @@ async def execute_tool(request: ToolExecutionRequest):
             "metadata": result.metadata
         }
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"Tool execution error: {e}")
+        logger.error(f"详细错误信息: {error_details}")
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "details": error_details
         }
 
 @app.post("/api/config")
@@ -302,10 +354,14 @@ async def update_config(config: WebAgentConfig):
         
         return {"success": True, "message": "Configuration updated"}
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"Config update error: {e}")
+        logger.error(f"详细错误信息: {error_details}")
         return {
             "success": False,
-            "error": str(e)
+            "error": str(e),
+            "details": error_details
         }
 
 @app.get("/api/config")
@@ -458,12 +514,14 @@ async def handle_websocket_chat(message: Dict[str, Any], websocket: WebSocket):
         }
         
     except Exception as e:
-        logger.error(f"WebSocket chat error: {e}")
         import traceback
-        traceback.print_exc()
+        error_details = traceback.format_exc()
+        logger.error(f"WebSocket chat error: {e}")
+        logger.error(f"详细错误信息: {error_details}")
         return {
             "type": "error",
-            "message": str(e)
+            "message": str(e),
+            "details": error_details
         }
 
 async def handle_websocket_tool_execution(message: Dict[str, Any], websocket: WebSocket):
@@ -496,10 +554,14 @@ async def handle_websocket_tool_execution(message: Dict[str, Any], websocket: We
             "timestamp": datetime.now().isoformat()
         }
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logger.error(f"WebSocket tool execution error: {e}")
+        logger.error(f"详细错误信息: {error_details}")
         return {
             "type": "error",
-            "message": str(e)
+            "message": str(e),
+            "details": error_details
         }
 
 # 健康检查
@@ -560,8 +622,11 @@ async def create_tool(request: ToolCreationRequest):
         return result
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logging.error(f"Failed to create tool: {e}")
-        return {"success": False, "error": str(e)}
+        logging.error(f"详细错误信息: {error_details}")
+        return {"success": False, "error": str(e), "details": error_details}
 
 @app.get("/api/tools/dynamic")
 async def list_dynamic_tools():
@@ -574,8 +639,11 @@ async def list_dynamic_tools():
         return {"success": True, "data": stats}
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logging.error(f"Failed to list dynamic tools: {e}")
-        return {"success": False, "error": str(e)}
+        logging.error(f"详细错误信息: {error_details}")
+        return {"success": False, "error": str(e), "details": error_details}
 
 @app.delete("/api/tools/dynamic/{tool_name}")
 async def delete_dynamic_tool(tool_name: str):
@@ -597,8 +665,11 @@ async def delete_dynamic_tool(tool_name: str):
         return {"success": success}
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logging.error(f"Failed to delete dynamic tool: {e}")
-        return {"success": False, "error": str(e)}
+        logging.error(f"详细错误信息: {error_details}")
+        return {"success": False, "error": str(e), "details": error_details}
 
 @app.get("/api/tools/dynamic/{tool_name}/info")
 async def get_dynamic_tool_info(tool_name: str):
@@ -622,8 +693,11 @@ async def get_dynamic_tool_info(tool_name: str):
             return {"success": False, "error": "Tool not found"}
             
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logging.error(f"Failed to get tool info: {e}")
-        return {"success": False, "error": str(e)}
+        logging.error(f"详细错误信息: {error_details}")
+        return {"success": False, "error": str(e), "details": error_details}
 
 @app.post("/api/tools/dynamic/{tool_name}/test")
 async def test_dynamic_tool(tool_name: str, parameters: Dict[str, Any]):
@@ -646,7 +720,10 @@ async def test_dynamic_tool(tool_name: str, parameters: Dict[str, Any]):
         }
         
     except Exception as e:
+        import traceback
+        error_details = traceback.format_exc()
         logging.error(f"Failed to test tool: {e}")
-        return {"success": False, "error": str(e)} 
+        logging.error(f"详细错误信息: {error_details}")
+        return {"success": False, "error": str(e), "details": error_details} 
 
 

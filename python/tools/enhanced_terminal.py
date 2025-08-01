@@ -266,12 +266,15 @@ class EnhancedTerminalTool(BaseTool):
             return result
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logging.error(f"Enhanced terminal execution failed: {e}")
+            logging.error(f"详细错误信息: {error_details}")
             return ToolResult(
                 success=False,
                 data=None,
                 error=f"Execution failed: {str(e)}",
-                metadata={"tool_type": "enhanced_terminal"}
+                metadata={"tool_type": "enhanced_terminal", "error_details": error_details}
             )
     
     async def _execute_with_analysis(
@@ -350,6 +353,16 @@ class EnhancedTerminalTool(BaseTool):
             
             # 如果是最后一次尝试，返回错误分析
             if attempt == max_retries - 1:
+                error_message = f"Command failed after {max_retries} attempts"
+                if stderr:
+                    error_message += f"\nFinal error output: {stderr}"
+                if error_analysis.get("error_message"):
+                    error_message += f"\nError analysis: {error_analysis['error_message']}"
+                
+                logging.error(f"Command failed after {max_retries} attempts: {command}")
+                logging.error(f"Final error output: {stderr}")
+                logging.error(f"Error analysis: {error_analysis}")
+                
                 return ToolResult(
                     success=False,
                     data={
@@ -361,12 +374,22 @@ class EnhancedTerminalTool(BaseTool):
                         "error_analysis": error_analysis,
                         "auto_fix_applied": False
                     },
-                    error=f"Command failed after {max_retries} attempts",
+                    error=error_message,
                     metadata={"tool_type": "enhanced_terminal", "attempts": max_retries}
                 )
             
             # 如果不是自动修复模式，直接返回错误
             if not auto_fix:
+                error_message = f"Command failed with return code {return_code}"
+                if stderr:
+                    error_message += f"\nError output: {stderr}"
+                if error_analysis.get("error_message"):
+                    error_message += f"\nError analysis: {error_analysis['error_message']}"
+                
+                logging.warning(f"Command failed with return code {return_code}: {command}")
+                logging.warning(f"Error output: {stderr}")
+                logging.warning(f"Error analysis: {error_analysis}")
+                
                 return ToolResult(
                     success=False,
                     data={
@@ -378,7 +401,7 @@ class EnhancedTerminalTool(BaseTool):
                         "error_analysis": error_analysis,
                         "auto_fix_applied": False
                     },
-                    error=f"Command failed with return code {return_code}",
+                    error=error_message,
                     metadata={"tool_type": "enhanced_terminal", "attempts": attempt + 1}
                 )
         
@@ -537,32 +560,83 @@ class EnhancedTerminalTool(BaseTool):
     ) -> Tuple[str, str, int]:
         """运行命令并返回结果"""
         
-        if shell:
-            process = await asyncio.create_subprocess_shell(
-                command,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=cwd
+        try:
+            if shell:
+                process = await asyncio.create_subprocess_shell(
+                    command,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=cwd
+                )
+            else:
+                args = shlex.split(command)
+                process = await asyncio.create_subprocess_exec(
+                    *args,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE,
+                    cwd=cwd
+                )
+            
+            stdout, stderr = await asyncio.wait_for(
+                process.communicate(),
+                timeout=timeout
             )
-        else:
-            args = shlex.split(command)
-            process = await asyncio.create_subprocess_exec(
-                *args,
-                stdout=asyncio.subprocess.PIPE,
-                stderr=asyncio.subprocess.PIPE,
-                cwd=cwd
+            
+            return (
+                stdout.decode('utf-8', errors='ignore'),
+                stderr.decode('utf-8', errors='ignore'),
+                process.returncode
             )
-        
-        stdout, stderr = await asyncio.wait_for(
-            process.communicate(),
-            timeout=timeout
-        )
-        
-        return (
-            stdout.decode('utf-8', errors='ignore'),
-            stderr.decode('utf-8', errors='ignore'),
-            process.returncode
-        )
+        except NotImplementedError:
+            # Windows系统上的兼容性处理
+            logging.warning("asyncio subprocess not supported, falling back to synchronous execution")
+            return await self._run_command_sync(command, timeout, cwd, shell)
+    
+    async def _run_command_sync(
+        self, 
+        command: str, 
+        timeout: int, 
+        cwd: Optional[str], 
+        shell: bool
+    ) -> Tuple[str, str, int]:
+        """同步运行命令并返回结果（Windows兼容性备选方案）"""
+        try:
+            import subprocess
+            
+            # 使用同步subprocess
+            if shell:
+                process = subprocess.Popen(
+                    command,
+                    shell=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    cwd=cwd,
+                    text=True
+                )
+            else:
+                args = shlex.split(command)
+                process = subprocess.Popen(
+                    args,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    cwd=cwd,
+                    text=True
+                )
+            
+            # 等待命令完成，带超时
+            try:
+                stdout, stderr = process.communicate(timeout=timeout)
+                return_code = process.returncode
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.communicate()
+                raise asyncio.TimeoutError(f"Command timed out after {timeout} seconds")
+            
+            return (stdout, stderr, return_code)
+            
+        except Exception as e:
+            logging.error(f"Sync command execution failed: {e}")
+            return ("", str(e), -1)
     
     def get_error_history(self) -> List[Dict]:
         """获取错误历史"""

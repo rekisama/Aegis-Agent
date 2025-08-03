@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>苹果风格演示 - Aegis Agent</title>
+    <link rel="stylesheet" href="/static/apple-style.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: #1d1d1f;
+            line-height: 1.6;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .demo-title {
+            font-size: 48px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 16px;
+        }
+
+        .demo-subtitle {
+            font-size: 20px;
+            color: #86868b;
+            font-weight: 400;
+        }
+
+        .demo-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .demo-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .demo-card:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.15);
+        }
+
+        .demo-card h3 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .demo-card p {
+            color: #86868b;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .demo-button {
+            background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+        }
+
+        .demo-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 122, 255, 0.4);
+        }
+
+        .demo-button:active {
+            transform: translateY(0);
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 20px;
+        }
+
+        .feature-list li {
+            padding: 8px 0;
+            color: #86868b;
+            position: relative;
+            padding-left: 24px;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #34C759;
+            font-weight: bold;
+        }
+
+        .stats-section {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 40px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 16px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .stat-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: 700;
+            color: #007AFF;
+            margin-bottom: 8px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #86868b;
+            font-weight: 500;
+        }
+
+        .cta-section {
+            text-align: center;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            padding: 60px 40px;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .cta-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1d1d1f;
+        }
+
+        .cta-description {
+            font-size: 18px;
+            color: #86868b;
+            margin-bottom: 30px;
+        }
+
+        .cta-button {
+            background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+            color: white;
+            border: none;
+            padding: 18px 36px;
+            border-radius: 16px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(52, 199, 89, 0.3);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(52, 199, 89, 0.4);
+        }
+
+        @media (max-width: 768px) {
+            .demo-title {
+                font-size: 36px;
+            }
+            
+            .demo-subtitle {
+                font-size: 18px;
+            }
+            
+            .demo-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1 class="demo-title">苹果风格界面</h1>
+            <p class="demo-subtitle">体验现代化的苹果设计语言</p>
+        </div>
+
+        <div class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">苹果设计语言</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">60fps</div>
+                    <div class="stat-label">流畅动画</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">100%</div>
+                    <div class="stat-label">响应式设计</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value">∞</div>
+                    <div class="stat-label">用户体验</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="demo-grid">
+            <div class="demo-card">
+                <h3>毛玻璃效果</h3>
+                <p>使用backdrop-filter实现真正的毛玻璃效果，让界面更加现代化和优雅。</p>
+                <ul class="feature-list">
+                    <li>实时模糊效果</li>
+                    <li>性能优化</li>
+                    <li>跨浏览器兼容</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <h3>流畅动画</h3>
+                <p>采用苹果的cubic-bezier缓动函数，让所有交互都感觉自然流畅。</p>
+                <ul class="feature-list">
+                    <li>60fps动画</li>
+                    <li>硬件加速</li>
+                    <li>减少动画</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <h3>渐变设计</h3>
+                <p>使用苹果风格的渐变色彩，让界面更加生动和富有层次感。</p>
+                <ul class="feature-list">
+                    <li>品牌色彩</li>
+                    <li>视觉层次</li>
+                    <li>情感表达</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <h3>圆角设计</h3>
+                <p>采用苹果的圆角设计规范，让界面更加友好和现代化。</p>
+                <ul class="feature-list">
+                    <li>统一圆角</li>
+                    <li>视觉和谐</li>
+                    <li>触感友好</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <h3>阴影系统</h3>
+                <p>精心设计的阴影系统，营造出真实的深度感和层次感。</p>
+                <ul class="feature-list">
+                    <li>多层阴影</li>
+                    <li>动态阴影</li>
+                    <li>深度感知</li>
+                </ul>
+            </div>
+
+            <div class="demo-card">
+                <h3>响应式布局</h3>
+                <p>完全响应式设计，在任何设备上都能提供完美的用户体验。</p>
+                <ul class="feature-list">
+                    <li>移动优先</li>
+                    <li>自适应布局</li>
+                    <li>触摸优化</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="cta-section">
+            <h2 class="cta-title">开始体验</h2>
+            <p class="cta-description">立即体验苹果风格的AI助手界面，感受现代化的设计魅力。</p>
+            <button class="cta-button" onclick="window.location.href='/'">进入应用</button>
+        </div>
+    </div>
+
+    <script>
+        // 添加页面加载动画
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = document.querySelectorAll('.demo-card');
+            const stats = document.querySelectorAll('.stat-item');
+            
+            // 为卡片添加延迟动画
+            cards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                
+                setTimeout(() => {
+                    card.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 100);
+            });
+            
+            // 为统计项添加动画
+            stats.forEach((stat, index) => {
+                stat.style.opacity = '0';
+                stat.style.transform = 'scale(0.8)';
+                
+                setTimeout(() => {
+                    stat.style.transition = 'all 0.5s cubic-bezier(0.4, 0, 0.2, 1)';
+                    stat.style.opacity = '1';
+                    stat.style.transform = 'scale(1)';
+                }, 600 + index * 100);
+            });
+        });
+    </script>
+</body>
+</html> 

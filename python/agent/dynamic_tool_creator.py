@@ -225,8 +225,9 @@ class Dynamic{name_capitalized}Tool(BaseTool):
             
             return ToolResult(
                 success=True,
-                data={"result": result},
-                error=None
+                data={{"result": result}},
+                error=None,
+                metadata={{"tool_type": "dynamic", "tool_name": self.name}}
             )
             
         except Exception as e:

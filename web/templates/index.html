@@ -3,8 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aegis Agent - AI助手</title>
+    <title>Aegis Agent - 智能AI助手</title>
     <style>
+        /* Apple Style Design System - macOS Ventura / iOS 17 */
+        :root {
+            /* Apple Color Palette */
+            --apple-blue: #007AFF;
+            --apple-blue-dark: #0056CC;
+            --apple-green: #34C759;
+            --apple-orange: #FF9500;
+            --apple-red: #FF3B30;
+            --apple-purple: #AF52DE;
+            --apple-pink: #FF2D92;
+            --apple-yellow: #FFCC02;
+            
+            /* Neutral Colors */
+            --apple-gray-50: #F9F9F9;
+            --apple-gray-100: #F2F2F7;
+            --apple-gray-200: #E5E5EA;
+            --apple-gray-300: #D1D1D6;
+            --apple-gray-400: #C7C7CC;
+            --apple-gray-500: #AEAEB2;
+            --apple-gray-600: #8E8E93;
+            --apple-gray-700: #636366;
+            --apple-gray-800: #48484A;
+            --apple-gray-900: #3A3A3C;
+            --apple-gray-950: #1C1C1E;
+            
+            /* Background Colors */
+            --apple-bg-primary: #FFFFFF;
+            --apple-bg-secondary: #F9F9F9;
+            --apple-bg-tertiary: #F2F2F7;
+            --apple-bg-elevated: rgba(255, 255, 255, 0.8);
+            --apple-bg-glass: rgba(255, 255, 255, 0.7);
+            --apple-bg-glass-dark: rgba(0, 0, 0, 0.7);
+            
+            /* Text Colors */
+            --apple-text-primary: #1D1D1F;
+            --apple-text-secondary: #86868B;
+            --apple-text-tertiary: #AEAEB2;
+            --apple-text-inverted: #FFFFFF;
+            
+            /* Border Colors */
+            --apple-border-light: rgba(255, 255, 255, 0.2);
+            --apple-border-medium: rgba(0, 0, 0, 0.1);
+            --apple-border-dark: rgba(0, 0, 0, 0.2);
+            
+            /* Shadow System */
+            --apple-shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
+            --apple-shadow-md: 0 4px 16px rgba(0, 0, 0, 0.1);
+            --apple-shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.12);
+            --apple-shadow-xl: 0 16px 64px rgba(0, 0, 0, 0.15);
+            
+            /* Border Radius */
+            --apple-radius-sm: 8px;
+            --apple-radius-md: 12px;
+            --apple-radius-lg: 16px;
+            --apple-radius-xl: 20px;
+            --apple-radius-2xl: 24px;
+            --apple-radius-full: 9999px;
+            
+            /* Spacing */
+            --apple-spacing-xs: 4px;
+            --apple-spacing-sm: 8px;
+            --apple-spacing-md: 16px;
+            --apple-spacing-lg: 24px;
+            --apple-spacing-xl: 32px;
+            --apple-spacing-2xl: 48px;
+            
+            /* Typography */
+            --apple-font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+            --apple-font-mono: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+        }
+
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --apple-bg-primary: #000000;
+                --apple-bg-secondary: #1C1C1E;
+                --apple-bg-tertiary: #2C2C2E;
+                --apple-bg-elevated: rgba(28, 28, 30, 0.8);
+                --apple-bg-glass: rgba(0, 0, 0, 0.7);
+                --apple-bg-glass-dark: rgba(255, 255, 255, 0.7);
+                
+                --apple-text-primary: #FFFFFF;
+                --apple-text-secondary: #EBEBF5;
+                --apple-text-tertiary: #EBEBF599;
+                
+                --apple-border-light: rgba(255, 255, 255, 0.1);
+                --apple-border-medium: rgba(255, 255, 255, 0.2);
+                --apple-border-dark: rgba(255, 255, 255, 0.3);
+            }
+        }
+
+        /* Reset & Base Styles */
         * {
             margin: 0;
             padding: 0;
@@ -12,88 +104,151 @@
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-            background-color: #343541;
-            color: #ececf1;
+            font-family: var(--apple-font-family);
+            background: linear-gradient(135deg, #F9F9F9 0%, #F2F2F7 50%, #E5E5EA 100%);
+            color: var(--apple-text-primary);
             line-height: 1.6;
-            height: 100vh;
-            overflow: hidden;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            min-height: 100vh;
+            overflow-x: hidden;
         }
 
+        /* Apple Glass Effect */
+        .apple-glass {
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--apple-border-light);
+            border-radius: var(--apple-radius-lg);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .apple-glass-dark {
+            background: var(--apple-bg-glass-dark);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--apple-border-light);
+        }
+
+        /* Main Container */
         .app-container {
             display: flex;
             height: 100vh;
+            background: linear-gradient(135deg, #F9F9F9 0%, #F2F2F7 50%, #E5E5EA 100%);
         }
 
-        /* 侧边栏 */
+        /* Sidebar */
         .sidebar {
-            width: 260px;
-            background-color: #202123;
-            border-right: 1px solid #4a4b53;
+            width: 320px;
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-right: 1px solid var(--apple-border-light);
             display: flex;
             flex-direction: column;
-            transition: transform 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 100;
         }
 
         .sidebar-header {
-            padding: 14px 16px;
-            border-bottom: 1px solid #4a4b53;
+            padding: var(--apple-spacing-lg);
+            border-bottom: 1px solid var(--apple-border-light);
+            background: var(--apple-bg-elevated);
         }
 
-        .new-chat-btn {
-            width: 100%;
-            padding: 12px 16px;
-            background-color: transparent;
-            border: 1px solid #565869;
-            border-radius: 6px;
-            color: #ececf1;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background-color 0.2s ease;
+        .app-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-sm);
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: var(--apple-spacing-sm);
         }
 
-        .new-chat-btn:hover {
-            background-color: #2a2b32;
+        .app-subtitle {
+            font-size: 14px;
+            color: var(--apple-text-secondary);
+            font-weight: 500;
         }
 
-        .new-chat-btn svg {
-            width: 16px;
-            height: 16px;
+        /* Apple Style Button */
+        .apple-button {
+            width: 100%;
+            padding: var(--apple-spacing-md) var(--apple-spacing-lg);
+            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
+            border: none;
+            border-radius: var(--apple-radius-lg);
+            color: var(--apple-text-inverted);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--apple-spacing-sm);
+            margin-top: var(--apple-spacing-md);
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .apple-button:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .apple-button:active {
+            transform: translateY(0);
+        }
+
+        .apple-button.secondary {
+            background: linear-gradient(135deg, var(--apple-bg-elevated) 0%, var(--apple-bg-tertiary) 100%);
+            color: var(--apple-text-primary);
+            border: 1px solid var(--apple-border-medium);
+        }
+
+        .apple-button.secondary:hover {
+            background: linear-gradient(135deg, var(--apple-bg-tertiary) 0%, var(--apple-bg-secondary) 100%);
+            border-color: var(--apple-blue);
         }
 
         .sidebar-content {
             flex: 1;
             overflow-y: auto;
-            padding: 8px;
+            padding: var(--apple-spacing-md);
         }
 
+        /* Chat History */
         .chat-history {
             list-style: none;
         }
 
         .chat-history li {
-            padding: 8px 12px;
-            margin: 2px 0;
-            border-radius: 6px;
+            padding: var(--apple-spacing-md);
+            margin: var(--apple-spacing-xs) 0;
+            border-radius: var(--apple-radius-lg);
             cursor: pointer;
             font-size: 14px;
-            color: #ececf1;
-            transition: background-color 0.2s ease;
+            color: var(--apple-text-primary);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: space-between;
             position: relative;
+            background: transparent;
         }
 
         .chat-history li:hover {
-            background-color: #2a2b32;
+            background: var(--apple-bg-elevated);
+            transform: translateX(4px);
         }
 
         .chat-history li.active {
-            background-color: #2a2b32;
+            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
+            color: var(--apple-text-inverted);
+            box-shadow: var(--apple-shadow-sm);
         }
 
         .chat-history li .chat-title {
@@ -101,255 +256,850 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            margin-right: 8px;
+            margin-right: var(--apple-spacing-sm);
+            font-weight: 500;
         }
 
         .chat-history li .chat-time {
-            font-size: 11px;
-            color: #8e8ea0;
-            margin-right: 8px;
+            font-size: 12px;
+            color: var(--apple-text-tertiary);
+            margin-right: var(--apple-spacing-sm);
+        }
+
+        .chat-history li.active .chat-time {
+            color: rgba(255, 255, 255, 0.7);
         }
 
         .delete-chat-btn {
             background: none;
             border: none;
-            color: #8e8ea0;
+            color: var(--apple-text-tertiary);
             cursor: pointer;
-            padding: 4px;
-            border-radius: 4px;
+            padding: var(--apple-spacing-xs);
+            border-radius: var(--apple-radius-sm);
             opacity: 0;
-            transition: opacity 0.2s ease, background-color 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .delete-chat-btn:hover {
-            background-color: #ef4444;
-            color: white;
+            background: var(--apple-red);
+            color: var(--apple-text-inverted);
+            transform: scale(1.1);
         }
 
         .chat-history li:hover .delete-chat-btn {
             opacity: 1;
         }
 
-        .delete-chat-btn svg {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* 主内容区域 */
+        /* Main Content */
         .main-content {
             flex: 1;
             display: flex;
             flex-direction: column;
-            background-color: #343541;
+            background: transparent;
+            position: relative;
         }
 
         .chat-container {
             flex: 1;
             overflow-y: auto;
             padding: 0;
+            background: transparent;
         }
 
+        /* Messages */
         .message {
-            padding: 20px 0;
-            border-bottom: 1px solid #4a4b53;
+            padding: var(--apple-spacing-xl) 0;
+            border-bottom: 1px solid var(--apple-border-light);
+            animation: apple-fade-in-up 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .message.user {
-            background-color: #343541;
+            background: transparent;
         }
 
         .message.assistant {
-            background-color: #444654;
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
         }
 
         .message.error {
-            background-color: #444654;
-            border-left: 4px solid #ef4444;
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-left: 4px solid var(--apple-red);
         }
 
         .message-content {
-            max-width: 768px;
+            max-width: 800px;
             margin: 0 auto;
-            padding: 0 16px;
+            padding: 0 var(--apple-spacing-lg);
             display: flex;
-            gap: 16px;
+            gap: var(--apple-spacing-md);
         }
 
         .message-avatar {
-            width: 30px;
-            height: 30px;
-            border-radius: 2px;
+            width: 40px;
+            height: 40px;
+            border-radius: var(--apple-radius-full);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 16px;
             font-weight: 600;
             flex-shrink: 0;
+            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
+            color: var(--apple-text-inverted);
+            box-shadow: var(--apple-shadow-sm);
         }
 
         .message.user .message-avatar {
-            background-color: #10a37f;
-            color: white;
+            background: linear-gradient(135deg, var(--apple-green) 0%, #2E8B57 100%);
         }
 
         .message.assistant .message-avatar {
-            background-color: #19c37d;
-            color: white;
+            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
         }
 
         .message.error .message-avatar {
-            background-color: #ef4444;
-            color: white;
+            background: linear-gradient(135deg, var(--apple-red) 0%, #DC143C 100%);
         }
 
         .message-text {
             flex: 1;
             font-size: 16px;
             line-height: 1.6;
-            color: #ececf1;
+            color: var(--apple-text-primary);
             white-space: pre-wrap;
             word-wrap: break-word;
+            padding: var(--apple-spacing-md);
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-lg);
+            box-shadow: var(--apple-shadow-sm);
         }
 
-        .message.user .message-text {
-            color: #ececf1;
-        }
-
-        .message.assistant .message-text {
-            color: #ececf1;
-        }
-
-        .message.error .message-text {
-            color: #fca5a5;
-        }
-
-        /* 输入区域 */
+        /* Input Area */
         .input-container {
-            padding: 20px 16px;
-            background-color: #343541;
-            border-top: 1px solid #4a4b53;
+            padding: var(--apple-spacing-lg);
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid var(--apple-border-light);
+            position: relative;
         }
 
         .input-wrapper {
-            max-width: 768px;
+            max-width: 800px;
             margin: 0 auto;
             position: relative;
         }
 
         .message-input {
             width: 100%;
-            padding: 12px 45px 12px 16px;
-            background-color: #40414f;
-            border: 1px solid #565869;
-            border-radius: 6px;
-            color: #ececf1;
+            padding: var(--apple-spacing-md) 60px var(--apple-spacing-md) var(--apple-spacing-md);
+            background: var(--apple-bg-elevated);
+            border: 1px solid var(--apple-border-medium);
+            border-radius: var(--apple-radius-xl);
+            color: var(--apple-text-primary);
             font-size: 16px;
             line-height: 1.5;
             resize: none;
-            min-height: 52px;
+            min-height: 56px;
             max-height: 200px;
             font-family: inherit;
             outline: none;
-            transition: border-color 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--apple-shadow-sm);
         }
 
         .message-input:focus {
-            border-color: #19c37d;
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1), var(--apple-shadow-md);
+            transform: translateY(-1px);
         }
 
         .message-input::placeholder {
-            color: #8e8ea0;
+            color: var(--apple-text-tertiary);
         }
 
         .send-button {
             position: absolute;
-            right: 8px;
-            bottom: 8px;
-            width: 32px;
-            height: 32px;
-            background-color: #19c37d;
+            right: var(--apple-spacing-sm);
+            bottom: var(--apple-spacing-sm);
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
             border: none;
-            border-radius: 4px;
-            color: white;
+            border-radius: var(--apple-radius-full);
+            color: var(--apple-text-inverted);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background-color 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            box-shadow: var(--apple-shadow-sm);
         }
 
         .send-button:hover:not(:disabled) {
-            background-color: #1a8870;
+            transform: scale(1.05);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .send-button:active {
+            transform: scale(0.95);
         }
 
         .send-button:disabled {
-            background-color: #565869;
+            background: var(--apple-gray-400);
             cursor: not-allowed;
+            transform: none;
         }
 
-        .send-button svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        /* 状态栏 */
+        /* Status Bar */
         .status-bar {
-            padding: 8px 16px;
-            background-color: #202123;
-            border-top: 1px solid #4a4b53;
+            padding: var(--apple-spacing-sm) var(--apple-spacing-lg);
+            background: var(--apple-bg-glass);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid var(--apple-border-light);
             font-size: 12px;
-            color: #8e8ea0;
+            color: var(--apple-text-secondary);
             text-align: center;
+            font-weight: 500;
         }
 
-        /* 执行日志 */
+        /* Execution Log */
         .execution-log {
-            margin: 8px 0;
-            padding: 8px 12px;
-            border-radius: 4px;
+            margin: var(--apple-spacing-sm) 0;
+            padding: var(--apple-spacing-md);
+            border-radius: var(--apple-radius-lg);
             font-size: 13px;
             line-height: 1.4;
-            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
-            background-color: #2d2d2d;
-            color: #d1d5db;
-            border-left: 3px solid #6b7280;
+            font-family: var(--apple-font-mono);
+            background: var(--apple-bg-elevated);
+            color: var(--apple-text-secondary);
+            border-left: 3px solid var(--apple-gray-500);
+            animation: apple-slide-in-left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: var(--apple-shadow-sm);
         }
 
         .execution-log-info {
-            border-left-color: #6b7280;
+            border-left-color: var(--apple-blue);
+            color: var(--apple-blue);
         }
 
         .execution-log-warning {
-            border-left-color: #f59e0b;
-            color: #fbbf24;
+            border-left-color: var(--apple-orange);
+            color: var(--apple-orange);
         }
 
         .execution-log-error {
-            border-left-color: #ef4444;
-            color: #fca5a5;
+            border-left-color: var(--apple-red);
+            color: var(--apple-red);
         }
 
         .log-time {
             font-weight: 600;
-            color: #9ca3af;
-            margin-right: 8px;
+            color: var(--apple-text-tertiary);
+            margin-right: var(--apple-spacing-sm);
         }
 
         .log-message {
             word-break: break-all;
         }
 
-        /* 移动端适配 */
+        /* Tool Management */
+        .tool-management-section {
+            padding: var(--apple-spacing-lg);
+            margin: var(--apple-spacing-md) 0;
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-xl);
+            box-shadow: var(--apple-shadow-sm);
+            border: 1px solid var(--apple-border-subtle);
+        }
+
+        .tool-management-btn {
+            background: var(--apple-gradient-primary);
+            color: var(--apple-text-primary);
+            border: none;
+            padding: var(--apple-spacing-sm) var(--apple-spacing-md);
+            border-radius: var(--apple-radius-lg);
+            cursor: pointer;
+            font-family: var(--apple-font-family);
+            font-size: var(--apple-text-sm);
+            font-weight: 500;
+            transition: all var(--apple-transition);
+            box-shadow: var(--apple-shadow-sm);
+            margin: var(--apple-spacing-xs);
+        }
+
+        .tool-management-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--apple-shadow-md);
+            opacity: 0.9;
+        }
+
+        .tool-management-btn:active {
+            transform: translateY(0);
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .tool-input {
+            width: 100%;
+            padding: var(--apple-spacing-md);
+            border: 1px solid var(--apple-border-subtle);
+            border-radius: var(--apple-radius-lg);
+            background: var(--apple-bg-elevated);
+            color: var(--apple-text-primary);
+            font-family: var(--apple-font-family);
+            font-size: var(--apple-text-sm);
+            transition: all var(--apple-transition);
+            margin: var(--apple-spacing-sm) 0;
+        }
+
+        .tool-input:focus {
+            outline: none;
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px var(--apple-blue-alpha);
+        }
+
+        .tool-list {
+            list-style: none;
+            padding: 0;
+            margin: var(--apple-spacing-md) 0;
+        }
+
+        .tool-list li {
+            padding: var(--apple-spacing-md);
+            margin: var(--apple-spacing-xs) 0;
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-lg);
+            border: 1px solid var(--apple-border-subtle);
+            transition: all var(--apple-transition);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .tool-list li:hover {
+            background: var(--apple-bg-hover);
+            transform: translateX(2px);
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .tool-name {
+            font-weight: 500;
+            color: var(--apple-text-primary);
+        }
+
+        .tool-description {
+            font-size: var(--apple-text-xs);
+            color: var(--apple-text-secondary);
+            margin-top: var(--apple-spacing-xs);
+        }
+
+        .tool-actions {
+            display: flex;
+            gap: var(--apple-spacing-xs);
+        }
+
+        .tool-action-btn {
+            padding: var(--apple-spacing-xs) var(--apple-spacing-sm);
+            border: none;
+            border-radius: var(--apple-radius-md);
+            cursor: pointer;
+            font-size: var(--apple-text-xs);
+            transition: all var(--apple-transition);
+            background: var(--apple-bg-subtle);
+            color: var(--apple-text-secondary);
+        }
+
+        .tool-action-btn:hover {
+            background: var(--apple-blue);
+            color: white;
+        }
+
+        .tool-action-btn.delete {
+            background: var(--apple-red-alpha);
+            color: var(--apple-red);
+        }
+
+        .tool-action-btn.delete:hover {
+            background: var(--apple-red);
+            color: white;
+        }
+
+        .tool-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            animation: apple-fade-in 0.3s ease-out;
+        }
+
+        .tool-modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .tool-modal-content {
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-xl);
+            padding: var(--apple-spacing-xl);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: var(--apple-shadow-xl);
+            border: 1px solid var(--apple-border-subtle);
+            animation: apple-slide-in-up 0.3s ease-out;
+        }
+
+        .tool-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--apple-spacing-lg);
+            padding-bottom: var(--apple-spacing-md);
+            border-bottom: 1px solid var(--apple-border-subtle);
+        }
+
+        .tool-modal-title {
+            font-size: var(--apple-text-lg);
+            font-weight: 600;
+            color: var(--apple-text-primary);
+        }
+
+        .tool-modal-close {
+            background: none;
+            border: none;
+            font-size: var(--apple-text-xl);
+            cursor: pointer;
+            color: var(--apple-text-secondary);
+            padding: var(--apple-spacing-xs);
+            border-radius: var(--apple-radius-md);
+            transition: all var(--apple-transition);
+        }
+
+        .tool-modal-close:hover {
+            background: var(--apple-bg-hover);
+            color: var(--apple-text-primary);
+        }
+
+        .tool-form-group {
+            margin-bottom: var(--apple-spacing-md);
+        }
+
+        .tool-form-label {
+            display: block;
+            margin-bottom: var(--apple-spacing-xs);
+            font-weight: 500;
+            color: var(--apple-text-primary);
+        }
+
+        .tool-form-input {
+            width: 100%;
+            padding: var(--apple-spacing-md);
+            border: 1px solid var(--apple-border-subtle);
+            border-radius: var(--apple-radius-lg);
+            background: var(--apple-bg-elevated);
+            color: var(--apple-text-primary);
+            font-family: var(--apple-font-family);
+            font-size: var(--apple-text-sm);
+            transition: all var(--apple-transition);
+        }
+
+        .tool-form-input:focus {
+            outline: none;
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px var(--apple-blue-alpha);
+        }
+
+        .tool-form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .tool-modal-actions {
+            display: flex;
+            gap: var(--apple-spacing-md);
+            justify-content: flex-end;
+            margin-top: var(--apple-spacing-lg);
+            padding-top: var(--apple-spacing-md);
+            border-top: 1px solid var(--apple-border-subtle);
+        }
+
+        .tool-modal-btn {
+            padding: var(--apple-spacing-sm) var(--apple-spacing-lg);
+            border: none;
+            border-radius: var(--apple-radius-lg);
+            cursor: pointer;
+            font-family: var(--apple-font-family);
+            font-size: var(--apple-text-sm);
+            font-weight: 500;
+            transition: all var(--apple-transition);
+        }
+
+        .tool-modal-btn.primary {
+            background: var(--apple-gradient-primary);
+            color: var(--apple-text-primary);
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .tool-modal-btn.primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .tool-modal-btn.secondary {
+            background: var(--apple-bg-subtle);
+            color: var(--apple-text-secondary);
+        }
+
+        .tool-modal-btn.secondary:hover {
+            background: var(--apple-bg-hover);
+            color: var(--apple-text-primary);
+        }
+
+        /* 工具管理面板样式 */
+        .tool-management-panel {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: apple-fade-in 0.3s ease-out;
+        }
+
+        .tool-panel-content {
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-xl);
+            width: 90%;
+            max-width: 800px;
+            max-height: 90%;
+            overflow-y: auto;
+            border: 1px solid var(--apple-border-subtle);
+            box-shadow: var(--apple-shadow-xl);
+            animation: apple-slide-in-up 0.3s ease-out;
+        }
+
+        .tool-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--apple-spacing-xl) var(--apple-spacing-xl) var(--apple-spacing-md) var(--apple-spacing-xl);
+            border-bottom: 1px solid var(--apple-border-subtle);
+        }
+
+        .tool-panel-header h3 {
+            color: var(--apple-text-primary);
+            font-size: var(--apple-text-lg);
+            margin: 0;
+            font-weight: 600;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--apple-text-secondary);
+            font-size: var(--apple-text-xl);
+            cursor: pointer;
+            padding: var(--apple-spacing-xs);
+            border-radius: var(--apple-radius-md);
+            transition: all var(--apple-transition);
+        }
+
+        .close-btn:hover {
+            background: var(--apple-bg-hover);
+            color: var(--apple-text-primary);
+        }
+
+        .tool-panel-body {
+            padding: var(--apple-spacing-xl);
+        }
+
+        .tool-creation-form {
+            margin-bottom: var(--apple-spacing-xl);
+        }
+
+        .tool-creation-form h4 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-md);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .form-group {
+            margin-bottom: var(--apple-spacing-md);
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: var(--apple-spacing-xs);
+            color: var(--apple-text-primary);
+            font-weight: 500;
+            font-size: var(--apple-text-sm);
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: var(--apple-spacing-md);
+            background: var(--apple-bg-elevated);
+            border: 1px solid var(--apple-border-subtle);
+            border-radius: var(--apple-radius-lg);
+            color: var(--apple-text-primary);
+            font-size: var(--apple-text-sm);
+            resize: vertical;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            transition: all var(--apple-transition);
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--apple-blue);
+            box-shadow: 0 0 0 3px var(--apple-blue-alpha);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+        }
+
+        .create-tool-btn {
+            background: var(--apple-gradient-primary);
+            color: var(--apple-text-primary);
+            border: none;
+            padding: var(--apple-spacing-md) var(--apple-spacing-lg);
+            border-radius: var(--apple-radius-lg);
+            font-size: var(--apple-text-sm);
+            cursor: pointer;
+            transition: all var(--apple-transition);
+            font-weight: 500;
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .create-tool-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .dynamic-tools-list h4 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-md);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--apple-spacing-md);
+        }
+
+        .dynamic-tool-item {
+            background: var(--apple-bg-elevated);
+            border: 1px solid var(--apple-border-subtle);
+            border-radius: var(--apple-radius-lg);
+            padding: var(--apple-spacing-md);
+            transition: all var(--apple-transition);
+        }
+
+        .dynamic-tool-item:hover {
+            border-color: var(--apple-blue);
+            transform: translateY(-2px);
+            box-shadow: var(--apple-shadow-md);
+        }
+
+        .dynamic-tool-item h5 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-xs);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .dynamic-tool-item p {
+            color: var(--apple-text-secondary);
+            font-size: var(--apple-text-sm);
+            margin-bottom: var(--apple-spacing-xs);
+        }
+
+        .tool-stats {
+            display: flex;
+            gap: var(--apple-spacing-md);
+            margin-top: var(--apple-spacing-xs);
+            font-size: var(--apple-text-xs);
+            color: var(--apple-text-tertiary);
+        }
+
+        .tools-statistics {
+            margin-bottom: var(--apple-spacing-lg);
+            padding: var(--apple-spacing-md);
+            background: var(--apple-bg-subtle);
+            border-radius: var(--apple-radius-lg);
+            border: 1px solid var(--apple-border-subtle);
+        }
+
+        .tools-statistics h4 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-md);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--apple-spacing-md);
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: var(--apple-spacing-md);
+            background: var(--apple-bg-elevated);
+            border-radius: var(--apple-radius-lg);
+            border: 1px solid var(--apple-border-subtle);
+        }
+
+        .stat-label {
+            display: block;
+            color: var(--apple-text-secondary);
+            font-size: var(--apple-text-xs);
+            margin-bottom: var(--apple-spacing-xs);
+        }
+
+        .stat-value {
+            display: block;
+            color: var(--apple-text-primary);
+            font-size: var(--apple-text-lg);
+            font-weight: bold;
+        }
+
+        .builtin-tools-list {
+            margin-bottom: var(--apple-spacing-lg);
+        }
+
+        .builtin-tools-list h4 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-md);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .builtin-tool-item {
+            background: var(--apple-bg-subtle);
+            border: 1px solid var(--apple-border-subtle);
+            border-radius: var(--apple-radius-lg);
+            padding: var(--apple-spacing-md);
+            margin-bottom: var(--apple-spacing-sm);
+            transition: all var(--apple-transition);
+        }
+
+        .builtin-tool-item:hover {
+            border-color: var(--apple-blue);
+            transform: translateX(2px);
+            box-shadow: var(--apple-shadow-sm);
+        }
+
+        .builtin-tool-item h5 {
+            color: var(--apple-text-primary);
+            margin-bottom: var(--apple-spacing-xs);
+            font-size: var(--apple-text-md);
+            font-weight: 600;
+        }
+
+        .builtin-tool-item p {
+            color: var(--apple-text-secondary);
+            font-size: var(--apple-text-sm);
+            margin-bottom: var(--apple-spacing-xs);
+        }
+
+        .tool-type {
+            background: var(--apple-blue);
+            color: white;
+            padding: var(--apple-spacing-xs) var(--apple-spacing-sm);
+            border-radius: var(--apple-radius-sm);
+            font-size: var(--apple-text-xs);
+            font-weight: 500;
+        }
+
+        /* Animations */
+        @keyframes apple-fade-in-up {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes apple-slide-in-left {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes apple-pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Loading Animation */
+        .loading-dots {
+            display: inline-block;
+        }
+
+        .loading-dots::after {
+            content: '';
+            animation: apple-dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes apple-dots {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+
+        /* Mobile Responsive */
         @media (max-width: 768px) {
             .sidebar {
                 position: fixed;
-                left: -260px;
+                left: -320px;
                 z-index: 1000;
                 height: 100vh;
+                width: 320px;
             }
 
             .sidebar.open {
-                transform: translateX(260px);
+                transform: translateX(320px);
             }
 
             .main-content {
@@ -357,30 +1107,54 @@
             }
 
             .message-content {
-                padding: 0 12px;
+                padding: 0 var(--apple-spacing-md);
             }
 
             .input-container {
-                padding: 16px 12px;
+                padding: var(--apple-spacing-md);
             }
         }
 
-        /* 滚动条样式 */
+        /* Scrollbar Styling */
         ::-webkit-scrollbar {
             width: 8px;
         }
 
         ::-webkit-scrollbar-track {
-            background: #202123;
+            background: var(--apple-bg-secondary);
         }
 
         ::-webkit-scrollbar-thumb {
-            background: #565869;
+            background: var(--apple-gray-400);
             border-radius: 4px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: #6b7280;
+            background: var(--apple-gray-500);
+        }
+
+        /* Selection */
+        ::selection {
+            background: var(--apple-blue);
+            color: var(--apple-text-inverted);
+        }
+
+        /* Focus */
+        :focus {
+            outline: 2px solid var(--apple-blue);
+            outline-offset: 2px;
+        }
+
+        /* Disabled States */
+        .apple-button:disabled,
+        .message-input:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .apple-button:disabled:hover {
+            transform: none;
+            box-shadow: none;
         }
     </style>
 </head>
@@ -389,8 +1163,17 @@
         <!-- 侧边栏 -->
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
-                <button class="new-chat-btn" onclick="startNewChat()">
-                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <div class="app-title">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    Aegis Agent
+                </div>
+                <div class="app-subtitle">智能AI助手</div>
+                <button class="apple-button" onclick="startNewChat()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 4.5v15m7.5-7.5h-15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     新对话
@@ -429,8 +1212,8 @@
                         onkeydown="handleKeyDown(event)"
                     ></textarea>
                     <button id="sendButton" class="send-button" onclick="sendMessage()">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M7 11L12 6L17 11M12 18V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
                 </div>
@@ -465,54 +1248,45 @@
                 lastModified: Date.now()
             };
             
-            // 获取现有对话列表
-            let savedChats = JSON.parse(localStorage.getItem('aegis_chats') || '[]');
+            let savedChats = JSON.parse(localStorage.getItem('Aegis Agent_chats') || '[]');
             
-            // 更新或添加对话
             const existingIndex = savedChats.findIndex(chat => chat.id === chatId);
             if (existingIndex >= 0) {
                 savedChats[existingIndex] = chat;
             } else {
-                savedChats.unshift(chat); // 新对话放在最前面
+                savedChats.unshift(chat);
             }
             
-            // 保存到本地存储
-            localStorage.setItem('aegis_chats', JSON.stringify(savedChats));
-            
-            // 更新侧边栏
+            localStorage.setItem('Aegis Agent_chats', JSON.stringify(savedChats));
             updateChatHistory();
         }
 
         // 加载对话
         function loadChat(chatId) {
-            const savedChats = JSON.parse(localStorage.getItem('aegis_chats') || '[]');
+            const savedChats = JSON.parse(localStorage.getItem('Aegis Agent_chats') || '[]');
             const chat = savedChats.find(chat => chat.id === chatId);
             
             if (chat) {
                 currentChatId = chatId;
                 chatHistory = chat.messages;
                 
-                // 清空当前显示
                 const chatMessages = document.getElementById('chatMessages');
                 chatMessages.innerHTML = '';
                 
-                // 显示对话内容
                 chat.messages.forEach(msg => {
-                    addMessage(msg.type, msg.content, false); // false表示不保存
+                    addMessage(msg.type, msg.content, false);
                 });
                 
-                // 更新侧边栏选中状态
                 updateChatHistory();
             }
         }
 
         // 删除对话
         function deleteChat(chatId) {
-            let savedChats = JSON.parse(localStorage.getItem('aegis_chats') || '[]');
+            let savedChats = JSON.parse(localStorage.getItem('Aegis Agent_chats') || '[]');
             savedChats = savedChats.filter(chat => chat.id !== chatId);
-            localStorage.setItem('aegis_chats', JSON.stringify(savedChats));
+            localStorage.setItem('Aegis Agent_chats', JSON.stringify(savedChats));
             
-            // 如果删除的是当前对话，清空界面
             if (currentChatId === chatId) {
                 startNewChat();
             }
@@ -523,7 +1297,7 @@
         // 更新侧边栏聊天历史
         function updateChatHistory() {
             const chatHistoryElement = document.getElementById('chatHistory');
-            const savedChats = JSON.parse(localStorage.getItem('aegis_chats') || '[]');
+            const savedChats = JSON.parse(localStorage.getItem('Aegis Agent_chats') || '[]');
             
             chatHistoryElement.innerHTML = '';
             
@@ -542,7 +1316,7 @@
                 
                 const deleteBtn = document.createElement('button');
                 deleteBtn.className = 'delete-chat-btn';
-                deleteBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                deleteBtn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6h14z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
                 deleteBtn.onclick = (e) => {
                     e.stopPropagation();
                     deleteChat(chat.id);
@@ -557,21 +1331,12 @@
 
         // 生成对话标题
         function generateChatTitle(messages) {
-            // 找到第一条用户消息作为标题
             const firstUserMessage = messages.find(msg => msg.type === 'user');
             if (firstUserMessage) {
                 const content = firstUserMessage.content;
                 return content.length > 30 ? content.substring(0, 30) + '...' : content;
             }
             return '新对话';
-        }
-
-        // 保存当前对话
-        function saveCurrentChat() {
-            if (chatHistory.length > 0) {
-                const title = generateChatTitle(chatHistory);
-                saveChat(currentChatId, title, chatHistory);
-            }
         }
 
         // 自动保存对话
@@ -605,7 +1370,6 @@
                     console.log('WebSocket连接已关闭');
                     updateStatus('disconnected', '连接已断开');
                     
-                    // 尝试重新连接
                     reconnectTimeout = setTimeout(() => {
                         console.log('尝试重新连接...');
                         updateStatus('connecting', '正在重新连接...');
@@ -634,7 +1398,6 @@
                     break;
                     
                 case 'execution_log':
-                    // 显示执行过程日志
                     addExecutionLog(data.message, data.level || 'info');
                     break;
                     
@@ -671,8 +1434,7 @@
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${type}`;
             
-            const avatar = type === 'user' ? 'U' : type === 'assistant' ? 'A' : 'E';
-            const avatarText = type === 'user' ? '用户' : type === 'assistant' ? '助手' : '错误';
+            const avatar = type === 'user' ? '👤' : type === 'assistant' ? '🤖' : '⚠️';
             
             messageDiv.innerHTML = `
                 <div class="message-content">
@@ -686,7 +1448,6 @@
 
             if (save) {
                 chatHistory.push({ type: type, content: content });
-                // 自动保存对话
                 setTimeout(autoSaveChat, 100);
             }
         }
@@ -703,23 +1464,19 @@
                 return;
             }
 
-            // 如果是新对话，生成新的对话ID
             if (!currentChatId) {
                 currentChatId = generateId();
             }
 
-            // 清除之前的执行日志
             clearExecutionLogs();
 
-            // 添加用户消息到界面
             addMessage('user', message);
             messageInput.value = '';
             messageInput.style.height = 'auto';
 
-            // 显示加载状态
             const sendButton = document.getElementById('sendButton');
             const originalContent = sendButton.innerHTML;
-            sendButton.innerHTML = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+            sendButton.innerHTML = '<div class="loading-dots"></div>';
             sendButton.disabled = true;
 
             try {
@@ -732,7 +1489,6 @@
                     }));
                 } else {
                     console.log('WebSocket不可用，使用HTTP API');
-                    // 回退到HTTP API
                     const response = await fetch('/api/chat', {
                         method: 'POST',
                         headers: {
@@ -780,36 +1536,37 @@
 
         // 开始新对话
         function startNewChat() {
-            // 保存当前对话
             if (currentChatId && chatHistory.length > 0) {
                 saveCurrentChat();
             }
             
-            // 清空界面
             const chatMessages = document.getElementById('chatMessages');
             chatMessages.innerHTML = '';
             clearExecutionLogs();
             
-            // 重置状态
             currentChatId = null;
             chatHistory = [];
             
-            // 更新侧边栏
             updateChatHistory();
+        }
+
+        // 保存当前对话
+        function saveCurrentChat() {
+            if (chatHistory.length > 0) {
+                const title = generateChatTitle(chatHistory);
+                saveChat(currentChatId, title, chatHistory);
+            }
         }
 
         // 页面加载时初始化
         window.onload = function() {
             initWebSocket();
             
-            // 监听文本框输入事件
             document.getElementById('messageInput').addEventListener('input', autoResizeTextarea);
             
-            // 加载本地存储的对话历史
             updateChatHistory();
             
-            // 添加欢迎消息
-            addMessage('assistant', '你好！我是Aegis Agent，你的AI助手。我可以帮助你执行各种任务，包括代码执行、文件操作、网络搜索等。请告诉我你需要什么帮助？');
+            addMessage('assistant', '你好！我是Aegis Agent，你的智能AI助手。我可以帮助你执行各种任务，包括代码执行、文件操作、网络搜索等。请告诉我你需要什么帮助？');
         };
     </script>
     
@@ -883,313 +1640,6 @@
             </div>
         </div>
     </div>
-
-    <style>
-    /* 工具管理样式 */
-    .tool-management-section {
-        padding: 16px;
-        border-top: 1px solid #4a4b53;
-    }
-
-    .tool-management-btn {
-        width: 100%;
-        padding: 12px 16px;
-        background-color: transparent;
-        border: 1px solid #565869;
-        border-radius: 6px;
-        color: #ececf1;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .tool-management-btn:hover {
-        background-color: #2a2b32;
-    }
-
-    .tool-management-panel {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.8);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .tool-panel-content {
-        background-color: #343541;
-        border-radius: 12px;
-        width: 90%;
-        max-width: 800px;
-        max-height: 90%;
-        overflow-y: auto;
-        border: 1px solid #4a4b53;
-    }
-
-    .tool-panel-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 24px 24px 16px 24px;
-        border-bottom: 1px solid #4a4b53;
-    }
-
-    .tool-panel-header h3 {
-        color: #ececf1;
-        font-size: 20px;
-        margin: 0;
-    }
-
-    .close-btn {
-        background: none;
-        border: none;
-        color: #ececf1;
-        font-size: 24px;
-        cursor: pointer;
-        padding: 4px 8px;
-        border-radius: 4px;
-        transition: background-color 0.2s ease;
-    }
-
-    .close-btn:hover {
-        background-color: #2a2b32;
-    }
-
-    .tool-panel-body {
-        padding: 24px;
-    }
-
-    .tool-creation-form {
-        margin-bottom: 32px;
-    }
-
-    .tool-creation-form h4 {
-        color: #ececf1;
-        margin-bottom: 16px;
-        font-size: 16px;
-    }
-
-    .form-group {
-        margin-bottom: 16px;
-    }
-
-    .form-group label {
-        display: block;
-        margin-bottom: 8px;
-        color: #ececf1;
-        font-weight: 500;
-        font-size: 14px;
-    }
-
-    .form-group input,
-    .form-group textarea {
-        width: 100%;
-        padding: 12px;
-        background-color: #40414f;
-        border: 1px solid #565869;
-        border-radius: 6px;
-        color: #ececf1;
-        font-size: 14px;
-        resize: vertical;
-        font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-    }
-
-    .form-group input:focus,
-    .form-group textarea:focus {
-        outline: none;
-        border-color: #10a37f;
-    }
-
-    .form-group textarea {
-        min-height: 100px;
-    }
-
-    .create-tool-btn {
-        background-color: #10a37f;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        font-size: 14px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .create-tool-btn:hover {
-        background-color: #0d8c6d;
-    }
-
-    .dynamic-tools-list h4 {
-        color: #ececf1;
-        margin-bottom: 16px;
-        font-size: 16px;
-    }
-
-    .tools-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 16px;
-    }
-
-    .dynamic-tool-item {
-        background-color: #40414f;
-        border: 1px solid #565869;
-        border-radius: 8px;
-        padding: 16px;
-        transition: border-color 0.2s ease;
-    }
-
-    .dynamic-tool-item:hover {
-        border-color: #10a37f;
-    }
-
-    .dynamic-tool-item h5 {
-        color: #ececf1;
-        margin-bottom: 8px;
-        font-size: 16px;
-    }
-
-    .dynamic-tool-item p {
-        color: #d1d5db;
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .tool-actions {
-        margin-top: 12px;
-        display: flex;
-        gap: 8px;
-    }
-
-    .tool-action-btn {
-        padding: 6px 12px;
-        border: none;
-        border-radius: 4px;
-        font-size: 12px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .test-btn {
-        background-color: #10a37f;
-        color: white;
-    }
-
-    .test-btn:hover {
-        background-color: #0d8c6d;
-    }
-
-    .delete-btn {
-        background-color: #dc3545;
-        color: white;
-    }
-
-    .delete-btn:hover {
-        background-color: #c82333;
-    }
-
-    .tool-stats {
-        display: flex;
-        gap: 16px;
-        margin-top: 8px;
-        font-size: 12px;
-        color: #9ca3af;
-    }
-
-    /* 工具统计样式 */
-    .tools-statistics {
-        margin-bottom: 24px;
-        padding: 16px;
-        background-color: #2a2b32;
-        border-radius: 8px;
-        border: 1px solid #4a4b53;
-    }
-
-    .tools-statistics h4 {
-        color: #ececf1;
-        margin-bottom: 16px;
-        font-size: 16px;
-    }
-
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 16px;
-    }
-
-    .stat-item {
-        text-align: center;
-        padding: 12px;
-        background-color: #343541;
-        border-radius: 6px;
-        border: 1px solid #4a4b53;
-    }
-
-    .stat-label {
-        display: block;
-        color: #9ca3af;
-        font-size: 12px;
-        margin-bottom: 4px;
-    }
-
-    .stat-value {
-        display: block;
-        color: #ececf1;
-        font-size: 20px;
-        font-weight: bold;
-    }
-
-    /* 内置工具样式 */
-    .builtin-tools-list {
-        margin-bottom: 24px;
-    }
-
-    .builtin-tools-list h4 {
-        color: #ececf1;
-        margin-bottom: 16px;
-        font-size: 16px;
-    }
-
-    .builtin-tool-item {
-        background-color: #2a2b32;
-        border: 1px solid #4a4b53;
-        border-radius: 8px;
-        padding: 16px;
-        margin-bottom: 12px;
-        transition: border-color 0.2s ease;
-    }
-
-    .builtin-tool-item:hover {
-        border-color: #10a37f;
-    }
-
-    .builtin-tool-item h5 {
-        color: #ececf1;
-        margin-bottom: 8px;
-        font-size: 16px;
-    }
-
-    .builtin-tool-item p {
-        color: #d1d5db;
-        font-size: 14px;
-        margin-bottom: 4px;
-    }
-
-    .tool-type {
-        background-color: #10a37f;
-        color: white;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-size: 10px;
-    }
-    </style>
 
     <script>
     // 工具管理功能

@@ -58,6 +58,7 @@ test_*.log
 memory/
 cache/
 
+web/conversation_files
 # OS
 .DS_Store
 Thumbs.db

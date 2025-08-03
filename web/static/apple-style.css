@@ -1,0 +1,256 @@
+/* 苹果风格动画和效果 */
+
+/* 页面加载动画 */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideInLeft {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+@keyframes pulse {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+@keyframes shimmer {
+    0% {
+        background-position: -200px 0;
+    }
+    100% {
+        background-position: calc(200px + 100%) 0;
+    }
+}
+
+/* 应用动画到主要元素 */
+.app-container {
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar {
+    animation: slideInLeft 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 消息动画 */
+.message {
+    animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 按钮悬停效果增强 */
+.new-chat-btn:hover,
+.send-button:hover:not(:disabled),
+.create-tool-btn:hover,
+.test-btn:hover,
+.delete-btn:hover {
+    transform: translateY(-2px) scale(1.02);
+}
+
+/* 输入框焦点动画 */
+.message-input:focus {
+    animation: pulse 0.3s ease-in-out;
+}
+
+/* 加载状态动画 */
+.loading {
+    position: relative;
+    overflow: hidden;
+}
+
+.loading::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.4),
+        transparent
+    );
+    animation: shimmer 1.5s infinite;
+}
+
+/* 工具卡片悬停效果 */
+.dynamic-tool-item:hover,
+.builtin-tool-item:hover {
+    transform: translateY(-4px) scale(1.02);
+}
+
+/* 统计卡片悬停效果 */
+.stat-item:hover {
+    transform: translateY(-2px) scale(1.05);
+}
+
+/* 侧边栏项目悬停效果 */
+.chat-history li:hover {
+    transform: translateX(6px) scale(1.02);
+}
+
+/* 删除按钮悬停效果 */
+.delete-chat-btn:hover {
+    transform: scale(1.2);
+}
+
+/* 关闭按钮悬停效果 */
+.close-btn:hover {
+    transform: scale(1.1) rotate(90deg);
+}
+
+/* 毛玻璃效果增强 */
+.glass-effect {
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* 阴影效果 */
+.apple-shadow {
+    box-shadow: 
+        0 4px 6px -1px rgba(0, 0, 0, 0.1),
+        0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.apple-shadow-hover {
+    box-shadow: 
+        0 10px 15px -3px rgba(0, 0, 0, 0.1),
+        0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+/* 渐变背景 */
+.apple-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.apple-gradient-blue {
+    background: linear-gradient(135deg, #007AFF 0%, #5856D6 100%);
+}
+
+.apple-gradient-green {
+    background: linear-gradient(135deg, #34C759 0%, #30D158 100%);
+}
+
+.apple-gradient-red {
+    background: linear-gradient(135deg, #FF3B30 0%, #FF453A 100%);
+}
+
+/* 圆角效果 */
+.apple-radius {
+    border-radius: 12px;
+}
+
+.apple-radius-large {
+    border-radius: 20px;
+}
+
+.apple-radius-small {
+    border-radius: 8px;
+}
+
+/* 字体优化 */
+.apple-font {
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* 间距系统 */
+.apple-spacing-xs { padding: 4px; }
+.apple-spacing-sm { padding: 8px; }
+.apple-spacing-md { padding: 16px; }
+.apple-spacing-lg { padding: 24px; }
+.apple-spacing-xl { padding: 32px; }
+
+/* 响应式设计增强 */
+@media (max-width: 768px) {
+    .tool-panel-content {
+        width: 95%;
+        margin: 20px;
+    }
+    
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+    body {
+        background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+        color: #ffffff;
+    }
+    
+    .sidebar {
+        background: rgba(0, 0, 0, 0.8);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .main-content {
+        background: rgba(0, 0, 0, 0.6);
+    }
+    
+    .message-text {
+        background: rgba(0, 0, 0, 0.8);
+        color: #ffffff;
+    }
+    
+    .message-input {
+        background: rgba(0, 0, 0, 0.9);
+        color: #ffffff;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .tool-panel-content {
+        background: rgba(0, 0, 0, 0.95);
+    }
+}
+
+/* 无障碍支持 */
+@media (prefers-reduced-motion: reduce) {
+    * {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+/* 高对比度模式 */
+@media (prefers-contrast: high) {
+    .message-text {
+        border: 2px solid #000000;
+    }
+    
+    .message-input {
+        border: 3px solid #000000;
+    }
+    
+    .send-button {
+        border: 2px solid #ffffff;
+    }
+} 

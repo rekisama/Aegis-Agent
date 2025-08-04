@@ -440,35 +440,48 @@ class EnhancedTerminalTool(BaseTool):
             }
     
     async def _fix_missing_module(self, error_analysis: Dict[str, Any]) -> Dict[str, Any]:
-        """修复缺失模块"""
+        """修复缺失模块（使用专用包管理器，避免触发服务器重启）"""
         missing_module = error_analysis.get("missing_module")
         if not missing_module:
             return {"success": False, "reason": "No missing module identified"}
         
-        # 尝试安装模块
-        install_command = f"pip install {missing_module}"
-        logging.info(f"📦 自动安装缺失模块: {install_command}")
-        
-        fix_result = await AutoFixer.execute_fix_command(install_command)
-        
-        if fix_result["success"]:
-            logging.info(f"✅ 模块安装成功: {missing_module}")
-            return {
-                "success": True,
-                "fix_type": "module_install",
-                "module": missing_module,
-                "command": install_command,
-                "details": fix_result
-            }
-        else:
-            logging.error(f"❌ 模块安装失败: {missing_module}")
+        try:
+            # 使用专用包管理器，避免使用terminal命令
+            from ..agent.package_manager import PackageManager
+            package_manager = PackageManager()
+            
+            logging.info(f"📦 自动安装缺失模块: {missing_module}")
+            
+            # 执行安装
+            install_result = await package_manager.install_package(missing_module)
+            
+            if install_result["success"]:
+                logging.info(f"✅ 模块安装成功: {missing_module}")
+                return {
+                    "success": True,
+                    "fix_type": "module_install",
+                    "module": missing_module,
+                    "command": f"pip install {missing_module}",
+                    "details": install_result
+                }
+            else:
+                logging.error(f"❌ 模块安装失败: {missing_module}")
+                return {
+                    "success": False,
+                    "fix_type": "module_install",
+                    "module": missing_module,
+                    "command": f"pip install {missing_module}",
+                    "error": install_result.get("error", "Unknown error"),
+                    "details": install_result
+                }
+        except Exception as e:
+            logging.error(f"❌ 安装模块时发生错误: {e}")
             return {
                 "success": False,
                 "fix_type": "module_install",
                 "module": missing_module,
-                "command": install_command,
-                "error": fix_result.get("error", "Unknown error"),
-                "details": fix_result
+                "command": f"pip install {missing_module}",
+                "error": str(e)
             }
     
     async def _fix_missing_command(self, error_analysis: Dict[str, Any]) -> Dict[str, Any]:

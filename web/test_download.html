@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>下载按钮测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f7;
+        }
+        .test-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .download-button {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            text-align: center;
+            box-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.1),
+                -2px -2px 4px rgba(255, 255, 255, 0.8);
+        }
+        .download-button:hover {
+            background: #0056CC;
+            transform: translateY(-1px);
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.15),
+                -3px -3px 6px rgba(255, 255, 255, 0.9);
+        }
+        .download-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                inset 1px 1px 2px rgba(0, 0, 0, 0.1),
+                inset -1px -1px 2px rgba(255, 255, 255, 0.8);
+        }
+        .test-message {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+            border-left: 4px solid #007AFF;
+        }
+        .log {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            border: 1px solid #e9ecef;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>下载按钮测试</h1>
+        
+        <h2>测试1: 直接下载链接</h2>
+        <div class="test-message">
+            这是一个测试消息，包含下载链接：/api/download/rotated_20250804_142018_QQ20250404-005428.png
+        </div>
+        
+        <h2>测试2: Agent格式下载链接</h2>
+        <div class="test-message">
+            图片旋转完成，处理后的文件：rotated_20250804_142018_QQ20250404-005428.png (677632 bytes): /api/download/rotated_20250804_142018_QQ20250404-005428.png
+        </div>
+        
+        <h2>测试3: 通用格式下载链接</h2>
+        <div class="test-message">
+            处理完成，文件已保存：rotated_20250804_142817_QQ20250309-120836.png 下载地址：/api/download/rotated_20250804_142817_QQ20250309-120836.png
+        </div>
+        
+        <h2>测试4: 下载链接格式</h2>
+        <div class="test-message">
+            图片处理完成。下载链接: /api/download/rotated_20250804_142018_QQ20250404-005428.png
+        </div>
+        
+        <h2>测试5: Markdown格式下载链接</h2>
+        <div class="test-message">
+            图片已成功旋转90度，处理后的文件已保存。您可以通过以下链接下载旋转后的图片：[下载旋转后的图片](web/uploads/rotated_20250804_143934_QQ20250309-120836.png)
+        </div>
+        
+        <div id="processed-content"></div>
+        
+        <div class="log" id="debug-log">
+            调试日志将显示在这里...
+        </div>
+    </div>
+
+    <script>
+        // 复制addMessage函数的下载链接处理逻辑
+        function processDownloadLinks(content) {
+            console.log('处理内容:', content);
+            
+            // 检测下载链接模式 - 支持多种格式
+            const downloadLinkRegex = /(\/api\/download\/[^\s]+)/g;
+            let processedContent = content.replace(downloadLinkRegex, (match, link) => {
+                console.log('检测到下载链接:', link);
+                // 提取文件名
+                const filename = link.split('/').pop();
+                return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                    <button class="download-button">
+                        📥 下载 ${filename}
+                    </button>
+                </a>`;
+            });
+            
+            // 检测Agent生成的下载链接格式: "filename (file_size bytes): /api/download/filename"
+            const agentDownloadRegex = /([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))\s*\([^)]+\):\s*(\/api\/download\/[^\s]+)/g;
+            processedContent = processedContent.replace(agentDownloadRegex, (match, filename, ext, link) => {
+                console.log('检测到Agent下载链接:', filename, link);
+                return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                    <button class="download-button">
+                        📥 下载 ${filename}
+                    </button>
+                </a>`;
+            });
+            
+            // 检测更通用的下载链接格式: 任何包含 /api/download/ 的链接
+            const generalDownloadRegex = /([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))\s*[^\/]*(\/api\/download\/[^\s]+)/g;
+            processedContent = processedContent.replace(generalDownloadRegex, (match, filename, ext, link) => {
+                console.log('检测到通用下载链接:', filename, link);
+                return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                    <button class="download-button">
+                        📥 下载 ${filename}
+                    </button>
+                </a>`;
+            });
+            
+            // 检测"下载链接:"格式
+            const downloadLinkFormatRegex = /下载链接:\s*(\/api\/download\/[^\s]+)/g;
+            processedContent = processedContent.replace(downloadLinkFormatRegex, (match, link) => {
+                console.log('检测到下载链接格式:', link);
+                const filename = link.split('/').pop();
+                return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                    <button class="download-button">
+                        📥 下载 ${filename}
+                    </button>
+                </a>`;
+            });
+            
+            // 检测Markdown格式的下载链接: [文本](web/uploads/filename)
+            const markdownDownloadRegex = /\[([^\]]+)\]\(web\/uploads\/([^\s)]+)\)/g;
+            processedContent = processedContent.replace(markdownDownloadRegex, (match, text, filename) => {
+                console.log('检测到Markdown下载链接:', text, filename);
+                const downloadLink = `/api/download/${filename}`;
+                return `<a href="${downloadLink}" class="download-link" download="${filename}" target="_blank">
+                    <button class="download-button">
+                        📥 ${text}
+                    </button>
+                </a>`;
+            });
+            
+            console.log('处理后的内容:', processedContent);
+            return processedContent;
+        }
+        
+        // 测试处理
+        function testProcessing() {
+            const testMessages = [
+                "这是一个测试消息，包含下载链接：/api/download/rotated_20250804_142018_QQ20250404-005428.png",
+                "图片旋转完成，处理后的文件：rotated_20250804_142018_QQ20250404-005428.png (677632 bytes): /api/download/rotated_20250804_142018_QQ20250404-005428.png",
+                "处理完成，文件已保存：rotated_20250804_142817_QQ20250309-120836.png 下载地址：/api/download/rotated_20250804_142817_QQ20250309-120836.png",
+                "图片处理完成。下载链接: /api/download/rotated_20250804_142018_QQ20250404-005428.png",
+                "图片已成功旋转90度，处理后的文件已保存。您可以通过以下链接下载旋转后的图片：[下载旋转后的图片](web/uploads/rotated_20250804_143934_QQ20250309-120836.png)"
+            ];
+            
+            const processedContainer = document.getElementById('processed-content');
+            const debugLog = document.getElementById('debug-log');
+            
+            processedContainer.innerHTML = '<h2>处理后的结果:</h2>';
+            
+            testMessages.forEach((message, index) => {
+                const processed = processDownloadLinks(message);
+                const div = document.createElement('div');
+                div.className = 'test-message';
+                div.innerHTML = `<strong>测试${index + 1}:</strong><br>${processed}`;
+                processedContainer.appendChild(div);
+            });
+            
+            // 显示调试信息
+            debugLog.innerHTML = '处理完成！请查看上面的结果。';
+        }
+        
+        // 页面加载完成后自动测试
+        window.addEventListener('load', testProcessing);
+    </script>
+</body>
+</html> 

@@ -76,6 +76,12 @@ class CodeExecutionTool(BaseTool):
             )
         
         try:
+            # 修复代码中的Unicode字符问题
+            fixed_code = self._fix_unicode_characters(code)
+            if fixed_code != code:
+                logging.info("修复了代码中的Unicode字符问题")
+                code = fixed_code
+            
             # Validate code safety
             if not self._is_safe_code(code):
                 return ToolResult(
@@ -160,6 +166,16 @@ class CodeExecutionTool(BaseTool):
             # Execute the code using subprocess.run instead of asyncio.create_subprocess_exec
             # This is more compatible with Windows
             import subprocess
+            import locale
+            
+            # 检测系统编码
+            system_encoding = locale.getpreferredencoding()
+            logging.info(f"System encoding: {system_encoding}")
+            
+            # 设置环境变量以确保正确的编码
+            env = os.environ.copy()
+            env['PYTHONIOENCODING'] = 'utf-8'
+            env['PYTHONUTF8'] = '1'
             
             if capture_output:
                 result = subprocess.run(
@@ -168,7 +184,8 @@ class CodeExecutionTool(BaseTool):
                     text=True,
                     timeout=timeout,
                     encoding='utf-8',
-                    errors='replace'  # 添加错误处理
+                    errors='replace',
+                    env=env
                 )
                 stdout_str = result.stdout
                 stderr_str = result.stderr
@@ -178,13 +195,43 @@ class CodeExecutionTool(BaseTool):
                     [sys.executable, temp_file],
                     timeout=timeout,
                     encoding='utf-8',
-                    errors='replace'  # 添加错误处理
+                    errors='replace',
+                    env=env
                 )
                 stdout_str = ""
                 stderr_str = ""
                 return_code = result.returncode
             
             execution_time = asyncio.get_event_loop().time() - start_time
+            
+            # 处理输出编码问题
+            if stdout_str:
+                # 尝试修复编码问题
+                try:
+                    # 如果输出包含乱码，尝试重新编码
+                    if 'ͼ' in stdout_str or 'Ƭ' in stdout_str:
+                        logging.warning("检测到可能的编码问题，尝试修复...")
+                        # 尝试不同的编码方式
+                        if hasattr(result, '_stdout') and result._stdout:
+                            try:
+                                stdout_str = result._stdout.decode('utf-8', errors='replace')
+                            except:
+                                stdout_str = result._stdout.decode('gbk', errors='replace')
+                except Exception as e:
+                    logging.error(f"编码修复失败: {e}")
+            
+            if stderr_str:
+                # 处理错误输出的编码问题
+                try:
+                    if 'ͼ' in stderr_str or 'Ƭ' in stderr_str:
+                        logging.warning("检测到错误输出中的编码问题，尝试修复...")
+                        if hasattr(result, '_stderr') and result._stderr:
+                            try:
+                                stderr_str = result._stderr.decode('utf-8', errors='replace')
+                            except:
+                                stderr_str = result._stderr.decode('gbk', errors='replace')
+                except Exception as e:
+                    logging.error(f"错误输出编码修复失败: {e}")
             
             # Limit output size
             if stdout_str and len(stdout_str) > self.max_output_size:
@@ -342,4 +389,34 @@ class CodeExecutionTool(BaseTool):
     
     def get_dangerous_modules(self) -> List[str]:
         """Get list of dangerous modules."""
-        return list(self.dangerous_modules) 
+        return list(self.dangerous_modules)
+    
+    def _fix_unicode_characters(self, code: str) -> str:
+        """修复代码中的Unicode字符问题"""
+        if not code:
+            return code
+        
+        # 检测并修复常见的Unicode字符问题
+        unicode_fixes = [
+            (chr(0xFF0C), ','),  # 全角逗号 -> 半角逗号
+            (chr(0xFF1A), ':'),  # 全角冒号 -> 半角冒号
+            (chr(0xFF08), '('),  # 全角左括号 -> 半角左括号
+            (chr(0xFF09), ')'),  # 全角右括号 -> 半角右括号
+            (chr(0xFF3B), '['),  # 全角左方括号 -> 半角左方括号
+            (chr(0xFF3D), ']'),  # 全角右方括号 -> 半角右方括号
+            (chr(0xFF02), '"'),  # 全角双引号 -> 半角双引号
+            (chr(0xFF07), "'"),  # 全角单引号 -> 半角单引号
+            (chr(0x2026), '...'), # 省略号 -> 三个点
+            (chr(0x2014), '-'),  # 全角破折号 -> 半角连字符
+            (chr(0x2013), '-'),  # 全角连字符 -> 半角连字符
+        ]
+        
+        fixed_code = code
+        for unicode_char, ascii_char in unicode_fixes:
+            fixed_code = fixed_code.replace(unicode_char, ascii_char)
+        
+        # 如果检测到Unicode字符问题，记录日志
+        if any(unicode_char in code for unicode_char, _ in unicode_fixes):
+            logging.warning(f"检测到Unicode字符问题，已尝试修复代码")
+        
+        return fixed_code 

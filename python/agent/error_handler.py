@@ -122,33 +122,45 @@ class ErrorHandlerAgent:
             }
     
     async def _fix_missing_module(self, error_context: ErrorContext) -> Dict[str, Any]:
-        """修复缺失模块"""
+        """修复缺失模块（使用专用包管理器，避免触发服务器重启）"""
         missing_module = error_context.error_analysis.get("missing_module")
         if not missing_module:
             return {"success": False, "reason": "No missing module identified"}
         
-        # 尝试安装模块
-        install_command = f"pip install {missing_module}"
-        logging.info(f"Attempting to install missing module: {install_command}")
-        
-        result = await self.terminal_tool.execute(command=install_command)
-        
-        if result.success:
-            # 重新尝试原始命令
-            retry_result = await self.terminal_tool.execute(command=error_context.command)
-            return {
-                "success": retry_result.success,
-                "install_success": True,
-                "retry_success": retry_result.success,
-                "install_command": install_command,
-                "retry_output": retry_result.data if retry_result.success else retry_result.error
-            }
-        else:
+        try:
+            # 使用专用包管理器，避免使用terminal工具
+            from .package_manager import PackageManager
+            package_manager = PackageManager()
+            
+            logging.info(f"Attempting to install missing module: {missing_module}")
+            
+            # 执行安装
+            install_result = await package_manager.install_package(missing_module)
+            
+            if install_result["success"]:
+                # 重新尝试原始命令
+                retry_result = await self.terminal_tool.execute(command=error_context.command)
+                return {
+                    "success": retry_result.success,
+                    "install_success": True,
+                    "retry_success": retry_result.success,
+                    "install_command": f"pip install {missing_module}",
+                    "retry_output": retry_result.data if retry_result.success else retry_result.error
+                }
+            else:
+                return {
+                    "success": False,
+                    "install_success": False,
+                    "install_error": install_result.get("error", "未知错误"),
+                    "install_command": f"pip install {missing_module}"
+                }
+        except Exception as e:
+            logging.error(f"安装模块时发生错误: {e}")
             return {
                 "success": False,
                 "install_success": False,
-                "install_error": result.error,
-                "install_command": install_command
+                "install_error": str(e),
+                "install_command": f"pip install {missing_module}"
             }
     
     async def _fix_missing_command(self, error_context: ErrorContext) -> Dict[str, Any]:

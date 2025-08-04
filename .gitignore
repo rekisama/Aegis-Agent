@@ -57,7 +57,8 @@ test_*.log
 # Memory storage
 memory/
 cache/
-
+python/web/uploads/
+web/uploads/
 web/conversation_files
 # OS
 .DS_Store

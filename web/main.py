@@ -13,11 +13,13 @@ from typing import Dict, List, Any, Optional
 import sys
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request, UploadFile, File, Form
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel
+import shutil
+import os
 
 # Initialize FastAPI app
 @asynccontextmanager
@@ -101,6 +103,7 @@ if static_dir.exists():
 class ChatMessage(BaseModel):
     message: str
     user_id: Optional[str] = None
+    attached_files: Optional[List[str]] = None  # List of uploaded file paths
 
 class ToolExecutionRequest(BaseModel):
     tool_name: str
@@ -122,6 +125,13 @@ class ToolCreationRequest(BaseModel):
 
 class ToolDeletionRequest(BaseModel):
     tool_name: str
+
+class FileUploadResponse(BaseModel):
+    filename: str
+    file_path: str
+    file_size: int
+    file_type: str
+    upload_time: str
 
 async def initialize_agent():
     """Initialize the agent."""
@@ -294,7 +304,19 @@ async def chat(request: ChatMessage):
         return {"error": "Agent not initialized"}
     
     try:
-        result = await agent.execute_task(request.message)
+        # Handle file attachments
+        message = request.message
+        if request.attached_files:
+            file_info = []
+            for file_path in request.attached_files:
+                if Path(file_path).exists():
+                    file_size = Path(file_path).stat().st_size
+                    file_info.append(f"文件: {Path(file_path).name} ({file_size} bytes)")
+            
+            if file_info:
+                message += f"\n\n附件文件:\n" + "\n".join(file_info)
+        
+        result = await agent.execute_task(message)
         return {
             "success": True,
             "result": result.get("result", ""),
@@ -446,11 +468,24 @@ async def handle_websocket_chat(message: Dict[str, Any], websocket: WebSocket):
             }
         
         user_message = message.get("message", "")
-        if not user_message:
+        attached_files = message.get("attached_files", [])
+        
+        if not user_message and not attached_files:
             return {
                 "type": "error",
-                "message": "消息为空"
+                "message": "消息为空且无附件"
             }
+        
+        # Handle file attachments
+        if attached_files:
+            file_info = []
+            for file_path in attached_files:
+                if Path(file_path).exists():
+                    file_size = Path(file_path).stat().st_size
+                    file_info.append(f"文件: {Path(file_path).name} ({file_size} bytes)")
+            
+            if file_info:
+                user_message += f"\n\n附件文件:\n" + "\n".join(file_info)
         
         # 发送开始执行的消息
         await websocket.send_json({
@@ -594,6 +629,12 @@ async def websocket_test_page(request: Request):
 async def simple_test_page(request: Request):
     """简单的WebSocket测试页面"""
     with open("web/templates/simple_test.html", "r", encoding="utf-8") as f:
+        return HTMLResponse(content=f.read())
+
+@app.get("/test_download", response_class=HTMLResponse)
+async def test_download_page(request: Request):
+    """测试下载按钮功能"""
+    with open("web/test_download.html", "r", encoding="utf-8") as f:
         return HTMLResponse(content=f.read()) 
 
 @app.get("/test_connection")
@@ -726,4 +767,137 @@ async def test_dynamic_tool(tool_name: str, parameters: Dict[str, Any]):
         logging.error(f"详细错误信息: {error_details}")
         return {"success": False, "error": str(e), "details": error_details} 
 
+# File Upload Endpoints
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    """Upload a file to the server."""
+    try:
+        # Create uploads directory if it doesn't exist
+        upload_dir = Path("web/uploads")
+        upload_dir.mkdir(exist_ok=True)
+        
+        # Generate unique filename to prevent conflicts
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        file_extension = Path(file.filename).suffix if file.filename else ""
+        unique_filename = f"{timestamp}_{file.filename}" if file.filename else f"{timestamp}_upload"
+        
+        # Save file
+        file_path = upload_dir / unique_filename
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # Get file info
+        file_size = file_path.stat().st_size
+        file_type = file.content_type or "application/octet-stream"
+        
+        return FileUploadResponse(
+            filename=unique_filename,
+            file_path=str(file_path),
+            file_size=file_size,
+            file_type=file_type,
+            upload_time=datetime.now().isoformat()
+        )
+        
+    except Exception as e:
+        logging.error(f"File upload failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"File upload failed: {str(e)}"}
+        )
 
+@app.get("/api/download/{filename}")
+async def download_file(filename: str):
+    """Download a processed file."""
+    try:
+        upload_dir = Path("web/uploads")
+        file_path = upload_dir / filename
+        
+        if not file_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"error": "File not found"}
+            )
+        
+        # Get file info
+        file_size = file_path.stat().st_size
+        file_type = "application/octet-stream"
+        
+        # Determine content type based on file extension
+        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp')):
+            file_type = "image/" + filename.split('.')[-1].lower()
+        elif filename.lower().endswith('.pdf'):
+            file_type = "application/pdf"
+        elif filename.lower().endswith(('.txt', '.md')):
+            file_type = "text/plain"
+        elif filename.lower().endswith(('.json')):
+            file_type = "application/json"
+        
+        # Return file as response
+        from fastapi.responses import FileResponse
+        return FileResponse(
+            path=str(file_path),
+            filename=filename,
+            media_type=file_type
+        )
+        
+    except Exception as e:
+        logging.error(f"File download failed: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"File download failed: {str(e)}"}
+        )
+
+def generate_download_link(filename: str) -> str:
+    """Generate a download link for a file."""
+    return f"/api/download/{filename}"
+
+@app.get("/api/uploads")
+async def list_uploads():
+    """List all uploaded files."""
+    try:
+        upload_dir = Path("web/uploads")
+        if not upload_dir.exists():
+            return {"files": []}
+        
+        files = []
+        for file_path in upload_dir.iterdir():
+            if file_path.is_file():
+                files.append({
+                    "filename": file_path.name,
+                    "file_path": str(file_path),
+                    "file_size": file_path.stat().st_size,
+                    "upload_time": datetime.fromtimestamp(file_path.stat().st_mtime).isoformat(),
+                    "download_link": generate_download_link(file_path.name)
+                })
+        
+        return {"files": files}
+        
+    except Exception as e:
+        logging.error(f"Failed to list uploads: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to list uploads: {str(e)}"}
+        )
+
+@app.delete("/api/uploads/{filename}")
+async def delete_upload(filename: str):
+    """Delete an uploaded file."""
+    try:
+        upload_dir = Path("web/uploads")
+        file_path = upload_dir / filename
+        
+        if not file_path.exists():
+            return JSONResponse(
+                status_code=404,
+                content={"error": "File not found"}
+            )
+        
+        file_path.unlink()
+        return {"success": True, "message": "File deleted successfully"}
+        
+    except Exception as e:
+        logging.error(f"Failed to delete file: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={"error": f"Failed to delete file: {str(e)}"}
+        )

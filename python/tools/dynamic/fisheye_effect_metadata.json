@@ -1,0 +1,14 @@
+{
+  "name": "fisheye_effect",
+  "description": "为图片添加鱼眼效果的工具",
+  "code": "import cv2\nimport numpy as np\nfrom PIL import Image\n\ndef apply_fisheye(input_path, output_path, strength=0.5):\n    img = cv2.imread(input_path)\n    if img is None:\n        raise ValueError(\"无法读取图片文件\")\n    \n    rows, cols = img.shape[:2]\n    \n    map_x = np.zeros((rows, cols), np.float32)\n    map_y = np.zeros((rows, cols), np.float32)\n    \n    center_x, center_y = cols/2, rows/2\n    radius = min(center_x, center_y)\n    \n    for y in range(rows):\n        for x in range(cols):\n            dx = x - center_x\n            dy = y - center_y\n            distance = np.sqrt(dx*dx + dy*dy)\n            \n            if distance < radius:\n                r = distance / radius\n                theta = 1 - r*r*strength\n                \n                new_x = center_x + dx * theta\n                new_y = center_y + dy * theta\n                \n                map_x[y,x] = new_x\n                map_y[y,x] = new_y\n            else:\n                map_x[y,x] = x\n                map_y[y,x] = y\n    \n    fisheye_img = cv2.remap(img, map_x, map_y, cv2.INTER_LINEAR)\n    \n    cv2.imwrite(output_path, fisheye_img)",
+  "parameters": {
+    "input_path": "str",
+    "output_path": "str",
+    "strength": "float"
+  },
+  "category": "utility",
+  "created_at": "2025-08-04T16:05:04.050618",
+  "usage_count": 0,
+  "success_rate": 0.0
+}

@@ -7,6 +7,7 @@ import asyncio
 import logging
 import uuid
 import json
+import re
 from typing import Dict, List, Optional, Any
 from datetime import datetime
 
@@ -99,13 +100,25 @@ class Agent:
             logging.info(f"Agent {self.config.name} starting task: {task_description}")
             logging.info(f"Agent {self.config.name} 开始执行任务: {task_description}")
             
+            # 发送开始信息到前端
+            await self._send_log_to_frontend(f"🤖 Agent {self.config.name} 开始执行任务: {task_description}")
+            
             # 分析任务
+            await self._send_log_to_frontend("🔍 正在分析任务...")
             logging.info(f"开始分析任务...")
             context = {"task_description": task_description, "agent_id": self.id}
             task_analysis = await self._analyze_task(task_description, context)
             logging.info(f"任务分析完成: {task_analysis.get('task_type', '未知')}")
             
+            # 发送分析结果到前端
+            if task_analysis:
+                analysis_summary = f"✅ 任务分析完成: {task_analysis.get('description', '未知任务')}"
+                if task_analysis.get('need_new_tool'):
+                    analysis_summary += " (需要创建新工具)"
+                await self._send_log_to_frontend(analysis_summary)
+            
             # 执行任务
+            await self._send_log_to_frontend("🚀 开始执行任务...")
             logging.info(f"开始执行任务...")
             result = await self._execute_task_internal(task_analysis)
             
@@ -113,12 +126,20 @@ class Agent:
             if self.memory:
                 await self.memory.store_task_result(task_description, result)
             
+            await self._send_log_to_frontend("✅ 任务执行完成")
             logging.info(f"任务执行完成")
             return result
             
         except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
             logging.error(f"Task execution failed: {e}")
             logging.error(f"任务执行失败: {e}")
+            
+            # 发送错误信息到前端
+            await self._send_log_to_frontend(f"❌ 任务执行失败: {str(e)}", "error")
+            await self._send_log_to_frontend(f"🔍 错误详情: {error_details}", "error")
+            
             return {
                 "status": "failed",
                 "result": f"任务执行失败: {str(e)}",
@@ -161,6 +182,14 @@ class Agent:
 - 搜索任务：包含"搜索"、"查找"、"查询"等关键词，但没有具体URL
 - 代码执行任务：包含"运行"、"执行"、"计算"等关键词
 - 终端命令任务：包含"命令"、"终端"、"shell"等关键词
+- 文件处理任务：包含"图片"、"图像"、"文件"、"处理"、"编辑"等关键词，或提到上传的文件
+
+文件处理任务特殊指导：
+- 如果任务涉及图片处理（如调整对比度、亮度、大小等），优先使用code工具
+- 如果任务涉及文件操作（如读取、写入、转换等），优先使用code工具
+- 在代码生成时，要考虑到上传文件的真实路径（通常在web/uploads/目录下）
+- 对于图片处理任务，确保代码包含必要的库导入（如PIL/Pillow）
+- 对于文件操作，确保代码包含适当的错误处理
 
 URL识别和保留：
 - 如果任务描述中包含URL，必须在description中保留完整的URL信息
@@ -170,13 +199,14 @@ URL识别和保留：
 工具选择指南：
 - web_reader: 用于直接访问网页URL并提取内容（标题、文本等）
 - search: 用于网络搜索信息，不直接访问特定URL
-- code: 用于执行Python代码
+- code: 用于执行Python代码，特别是文件处理和图片处理任务
 - terminal/enhanced_terminal: 用于执行系统命令
 
 工具创建指南：
 - 如果任务需要访问网页但web_reader工具不存在，创建web_reader工具
 - 如果任务需要特定数据处理但现有工具不支持，创建相应的数据处理工具
 - 如果任务需要调用特定API但现有工具不支持，创建API调用工具
+- 如果任务需要图片处理但现有工具不支持，创建图片处理工具
 
 当前可用工具：
 - web_reader: 获取网页内容并提取信息（标题、文本等）
@@ -337,21 +367,26 @@ URL识别和保留：
                             error_type = None
                             fix_attempted = False
                             
+                            await self._send_log_to_frontend("🔍 正在分析错误原因...")
+                            
                             # 检测 ModuleNotFoundError
                             module_match = re.search(r"No module named '([^']+)'", error_str)
                             if module_match:
                                 missing_module = module_match.group(1)
                                 error_type = "ModuleNotFoundError"
+                                await self._send_log_to_frontend(f"💡 检测到模块缺失错误: {missing_module}")
                             
                             # 检测 NameError (未定义的名称)
                             name_match = re.search(r"name '([^']+)' is not defined", error_str)
                             if name_match:
                                 missing_name = name_match.group(1)
+                                await self._send_log_to_frontend(f"💡 检测到未定义名称错误: {missing_name}")
                                 # 检查是否是常见的包名
                                 common_packages = ['requests', 'pandas', 'numpy', 'matplotlib', 'bs4', 'beautifulsoup4', 'pillow', 'opencv', 'cv2', 'sklearn', 'tensorflow', 'torch', 're', 'json', 'os', 'sys', 'time', 'datetime']
                                 if missing_name.lower() in [pkg.lower() for pkg in common_packages]:
                                     missing_module = missing_name
                                     error_type = "NameError"
+                                    await self._send_log_to_frontend(f"💭 分析: {missing_name} 可能是缺失的包，尝试安装...")
                             
                             # 检测 ImportError
                             import_match = re.search(r"cannot import name '([^']+)'", error_str)
@@ -359,52 +394,112 @@ URL识别和保留：
                                 missing_import = import_match.group(1)
                                 missing_module = missing_import
                                 error_type = "ImportError"
+                                await self._send_log_to_frontend(f"💡 检测到导入错误: {missing_import}")
+                            
+                            # 检测 SyntaxError
+                            syntax_match = re.search(r"invalid character '([^']+)'", error_str)
+                            if syntax_match:
+                                invalid_char = syntax_match.group(1)
+                                error_type = "SyntaxError"
+                                await self._send_log_to_frontend(f"💡 检测到语法错误: 无效字符 '{invalid_char}'")
+                                await self._send_log_to_frontend("💭 分析: 可能是Unicode字符问题，尝试修复...")
+                            
+                            # 检测 FileNotFoundError
+                            file_match = re.search(r"No such file or directory: '([^']+)'", error_str)
+                            if file_match:
+                                missing_file = file_match.group(1)
+                                error_type = "FileNotFoundError"
+                                await self._send_log_to_frontend(f"💡 检测到文件不存在错误: {missing_file}")
+                                await self._send_log_to_frontend("💭 分析: 文件路径可能不正确，需要检查路径...")
                             
                             # 如果检测到缺失模块，尝试安装
                             if missing_module and error_type:
                                 logging.info(f"   检测到{error_type}: {missing_module}")
                                 await self._send_log_to_frontend(f"   检测到{error_type}: {missing_module}")
                                 
+                                await self._send_log_to_frontend(f"🔧 尝试安装缺失的包: {missing_module}")
+                                
                                 # 尝试安装缺失的包
                                 install_result = await self._try_install_missing_package(missing_module)
                                 if install_result["success"]:
                                     logging.info(f"   包安装成功，重新执行代码...")
-                                    await self._send_log_to_frontend(f"   包安装成功，重新执行代码...")
+                                    await self._send_log_to_frontend(f"✅ 包安装成功，重新执行代码...")
                                     
                                     # 重新执行代码
                                     tool_result = await tool.execute(**tool_params)
                                     fix_attempted = True
+                                    
+                                    if tool_result.success:
+                                        await self._send_log_to_frontend("✅ 修复后的代码执行成功")
+                                    else:
+                                        await self._send_log_to_frontend(f"❌ 安装包后代码仍然失败: {tool_result.error}")
                                 else:
                                     logging.warning(f"   包安装失败: {install_result.get('error', '未知错误')}")
-                                    await self._send_log_to_frontend(f"   包安装失败: {install_result.get('error', '未知错误')}")
+                                    await self._send_log_to_frontend(f"❌ 包安装失败: {install_result.get('error', '未知错误')}")
                             
                             # 如果没有尝试修复或修复失败，尝试自动修复代码
                             if not fix_attempted and not tool_result.success:
                                 logging.info(f"   尝试自动修复代码错误...")
-                                await self._send_log_to_frontend(f"   尝试自动修复代码错误...")
+                                await self._send_log_to_frontend(f"🔧 尝试自动修复代码错误...")
+                                
+                                # 分析错误类型并提供修复建议
+                                error_analysis = self._analyze_tool_creation_error(error_str, {})
+                                error_type = error_analysis.get("error_type", "unknown")
+                                suggestions = error_analysis.get("suggestions", [])
+                                
+                                await self._send_log_to_frontend(f"💡 错误类型: {error_type}")
+                                for suggestion in suggestions:
+                                    await self._send_log_to_frontend(f"💭 修复建议: {suggestion}")
                                 
                                 # 尝试自动修复代码
                                 fixed_code_result = await self._auto_fix_code_error(tool_params.get('code', ''), error_str)
                                 if fixed_code_result["success"]:
                                     logging.info(f"   代码修复成功，重新执行...")
-                                    await self._send_log_to_frontend(f"   代码修复成功，重新执行...")
+                                    await self._send_log_to_frontend(f"✅ 代码修复成功，重新执行...")
                                     
                                     # 使用修复后的代码重新执行
                                     fixed_tool_params = tool_params.copy()
                                     fixed_tool_params['code'] = fixed_code_result['fixed_code']
                                     tool_result = await tool.execute(**fixed_tool_params)
+                                    
+                                    if tool_result.success:
+                                        await self._send_log_to_frontend("✅ 修复后的代码执行成功")
+                                    else:
+                                        await self._send_log_to_frontend(f"❌ 修复后的代码仍然失败: {tool_result.error}")
                                 else:
                                     logging.warning(f"   代码修复失败: {fixed_code_result.get('error', '未知错误')}")
-                                    await self._send_log_to_frontend(f"   代码修复失败: {fixed_code_result.get('error', '未知错误')}")
+                                    await self._send_log_to_frontend(f"❌ 代码修复失败: {fixed_code_result.get('error', '未知错误')}")
+                                    
+                                    # 如果修复失败，尝试重新分析任务
+                                    await self._send_log_to_frontend("🔄 尝试重新分析任务...")
+                                    error_context = {
+                                        "failed_step": f"步骤 {i}: {tool_name}",
+                                        "error_message": error_str,
+                                        "original_code": tool_params.get('code', ''),
+                                        "error_type": error_type,
+                                        "suggestions": suggestions
+                                    }
+                                    
+                                    new_analysis = await self._analyze_task_with_error_context(
+                                        task_description, error_context
+                                    )
+                                    
+                                    if new_analysis:
+                                        await self._send_log_to_frontend("✅ 重新分析完成，生成新的执行计划")
+                                        return await self._execute_task_internal(new_analysis)
+                                    else:
+                                        await self._send_log_to_frontend("❌ 重新分析失败")
                         
                         # 显示工具输出
                         if tool_result.success:
                             if hasattr(tool_result.data, 'get') and tool_result.data.get('stdout'):
                                 output = tool_result.data['stdout']
+                                # 检测并处理乱码输出
+                                cleaned_output = self._clean_garbled_output(output)
                                 logging.info(f"   执行成功")
                                 await self._send_log_to_frontend(f"   执行成功")
-                                logging.info(f"   输出: {output[:200]}{'...' if len(output) > 200 else ''}")
-                                await self._send_log_to_frontend(f"   输出: {output[:200]}{'...' if len(output) > 200 else ''}")
+                                logging.info(f"   输出: {cleaned_output[:200]}{'...' if len(cleaned_output) > 200 else ''}")
+                                await self._send_log_to_frontend(f"   输出: {cleaned_output[:200]}{'...' if len(cleaned_output) > 200 else ''}")
                             else:
                                 logging.info(f"   执行成功")
                                 await self._send_log_to_frontend(f"   执行成功")
@@ -435,7 +530,7 @@ URL识别和保留：
                                     return await self._execute_task_internal(new_task_analysis)
                             
                             # 如果是动态工具失败，尝试自动修复工具代码
-                            elif tool_name.startswith("dynamic_") and not tool_result.success:
+                            elif tool_name.startswith("dynamic_"):
                                 logging.info(f"   动态工具执行失败，尝试自动修复工具代码...")
                                 await self._send_log_to_frontend(f"   动态工具执行失败，尝试自动修复工具代码...")
                                 
@@ -551,10 +646,18 @@ URL识别和保留：
 5. 对于网络搜索和信息获取，使用search工具
 6. 对于直接访问网页URL并提取内容，使用web_reader工具
 
+文件处理任务特殊指导：
+- 对于图片处理任务（如调整对比度、亮度、大小等），优先使用code工具
+- 对于文件操作任务（如读取、写入、转换等），优先使用code工具
+- 在生成code工具的代码时，要考虑到上传文件的真实路径
+- 上传文件通常保存在web/uploads/目录下
+- 对于图片处理，确保代码包含必要的库导入（如PIL/Pillow）
+- 对于文件操作，确保代码包含适当的错误处理
+
 工具选择策略：
 - web_reader: 用于直接访问网页URL并提取内容（标题、文本等）
 - terminal: 用于系统命令、包安装、文件操作、环境配置
-- code: 用于Python代码执行、计算、数据处理
+- code: 用于Python代码执行、计算、数据处理、图片处理
 - search: 用于网络搜索、信息查询
 - enhanced_terminal: 用于复杂的终端操作
 
@@ -563,11 +666,12 @@ URL识别和保留：
 - 搜索任务：包含"搜索"、"查找"、"查询"等关键词，但没有具体URL
 - 代码执行任务：包含"运行"、"执行"、"计算"等关键词
 - 终端命令任务：包含"命令"、"终端"、"shell"等关键词
+- 文件处理任务：包含"图片"、"图像"、"文件"、"处理"、"编辑"等关键词，或提到上传的文件
 
 参数提取指南：
 - 对于web_reader工具：必须从任务描述中提取实际的URL，不要使用占位符
 - 对于search工具：提取搜索关键词
-- 对于code工具：生成相应的代码
+- 对于code工具：生成相应的代码，特别注意文件路径的处理
 - 对于terminal工具：生成相应的命令
 
 URL提取规则：
@@ -575,11 +679,17 @@ URL提取规则：
 - 如果任务描述中包含域名（如www.example.com），添加https://前缀
 - 不要使用"指定网页URL"、"目标URL"等占位符
 
+文件路径处理规则：
+- 如果任务涉及上传的文件，在code工具中要使用正确的文件路径
+- 上传文件通常保存在web/uploads/目录下
+- 避免使用硬编码的文件名（如'input.jpg'），要使用实际的文件路径
+- 在代码中包含适当的错误处理，检查文件是否存在
+
 对于每个任务，请仔细分析：
 1. 用户想要完成什么
 2. 是否需要安装依赖包
 3. 哪些工具有能力帮助
-4. 每个选定工具的最佳参数（特别是URL参数）
+4. 每个选定工具的最佳参数（特别是URL参数和文件路径）
 5. 工具执行的顺序
 
 重要：只回复有效的JSON，不要添加其他文本。只能使用上面列出的工具。
@@ -676,6 +786,9 @@ JSON格式：
         try:
             from ..llm.deepseek_client import DeepSeekClient
             
+            # 检测处理后的文件
+            processed_files = self._detect_processed_files(tool_results)
+            
             system_prompt = """你是一个AI助手，负责将多个工具的结果综合成一个连贯的响应。
 
 你的工作是将工具执行的结果整合成一个清晰、有用的回答。
@@ -686,6 +799,8 @@ JSON格式：
 3. 如果工具执行失败，解释原因并提供替代方案
 4. 使用中文回答
 5. 保持专业和友好的语调
+6. 如果检测到处理后的文件，请在回答中包含下载链接信息
+7. 对于下载链接，请使用标准格式：/api/download/文件名，不要使用Markdown格式
 
 请根据工具执行结果生成最终回答。"""
             
@@ -713,10 +828,30 @@ JSON格式：
                     else:
                         output = str(tool_result)
                     
+                    # 清理乱码输出
+                    output = self._clean_garbled_output(output)
+                    
                     results_summary.append(f"- {tool_name}: 成功 - {output}")
                 else:
                     error = result.get("result", {}).get("error", "未知错误")
                     results_summary.append(f"- {tool_name}: 失败 - {error}")
+            
+            # 构建文件下载信息
+            download_info = ""
+            if processed_files:
+                download_info = "\n\n处理后的文件下载链接：\n"
+                for file_info in processed_files:
+                    filename = file_info["filename"]
+                    file_size = file_info["file_size"]
+                    download_link = file_info["download_link"]
+                    download_info += f"- {filename} ({file_size} bytes): {download_link}\n"
+                
+                # 添加明确的下载链接格式，确保LLM不会重新格式化
+                download_info += "\n\n下载链接格式（请保持原样）：\n"
+                for file_info in processed_files:
+                    filename = file_info["filename"]
+                    download_link = file_info["download_link"]
+                    download_info += f"下载链接: {download_link}\n"
             
             prompt = f"""原始任务：{task_description}
 
@@ -725,7 +860,11 @@ JSON格式：
 工具执行结果：
 {chr(10).join(results_summary)}
 
-请根据以上信息生成最终回答："""
+{download_info}
+
+请根据以上信息生成最终回答，如果检测到处理后的文件，请在回答中包含下载链接信息。
+
+重要：对于下载链接，请使用标准格式：/api/download/文件名，不要使用Markdown格式的链接。"""
             
             async with DeepSeekClient() as llm_client:
                 response = await llm_client.generate_response(
@@ -780,7 +919,135 @@ JSON格式：
         for name, tool in self.tools.items():
             tool_descriptions.append(f"- {name}: {tool.description}")
         
-        return "\n".join(tool_descriptions) 
+        return "\n".join(tool_descriptions)
+    
+    def _clean_garbled_output(self, output: str) -> str:
+        """清理乱码输出"""
+        if not output:
+            return output
+        
+        # 检测常见的乱码模式
+        garbled_patterns = [
+            ('ͼƬ', '图片'),  # 图片
+            ('ļ', '文件'),    # 文件
+            ('ʱ', '时'),      # 时
+            ('δ', '未'),      # 未
+            ('ҵ', '找'),      # 找
+            ('µ', '到'),      # 到
+        ]
+        
+        cleaned_output = output
+        for garbled, correct in garbled_patterns:
+            cleaned_output = cleaned_output.replace(garbled, correct)
+        
+        # 如果检测到乱码，记录日志
+        if any(pattern[0] in output for pattern in garbled_patterns):
+            logging.warning(f"检测到乱码输出，已尝试修复: {output[:100]}...")
+        
+        return cleaned_output
+
+    def _fix_unicode_characters(self, code: str) -> str:
+        """修复代码中的Unicode字符问题"""
+        if not code:
+            return code
+        
+        # 检测并修复常见的Unicode字符问题
+        unicode_fixes = [
+            (chr(0xFF0C), ','),  # 全角逗号 -> 半角逗号
+            (chr(0xFF1A), ':'),  # 全角冒号 -> 半角冒号
+            (chr(0xFF08), '('),  # 全角左括号 -> 半角左括号
+            (chr(0xFF09), ')'),  # 全角右括号 -> 半角右括号
+            (chr(0xFF3B), '['),  # 全角左方括号 -> 半角左方括号
+            (chr(0xFF3D), ']'),  # 全角右方括号 -> 半角右方括号
+            (chr(0xFF02), '"'),  # 全角双引号 -> 半角双引号
+            (chr(0xFF07), "'"),  # 全角单引号 -> 半角单引号
+            (chr(0x2026), '...'), # 省略号 -> 三个点
+            (chr(0x2014), '-'),  # 全角破折号 -> 半角连字符
+            (chr(0x2013), '-'),  # 全角连字符 -> 半角连字符
+        ]
+        
+        fixed_code = code
+        for unicode_char, ascii_char in unicode_fixes:
+            fixed_code = fixed_code.replace(unicode_char, ascii_char)
+        
+        # 如果检测到Unicode字符问题，记录日志
+        if any(unicode_char in code for unicode_char, _ in unicode_fixes):
+            logging.warning(f"检测到Unicode字符问题，已尝试修复代码")
+        
+        return fixed_code 
+
+    def _detect_processed_files(self, tool_results: List[Dict]) -> List[Dict]:
+        """检测处理后的文件并生成下载链接"""
+        processed_files = []
+        
+        for result in tool_results:
+            if not result.get("success", False):
+                continue
+                
+            tool_result = result.get("result", {})
+            output = ""
+            
+            # 提取输出内容
+            if isinstance(tool_result, dict):
+                if 'stdout' in tool_result:
+                    output = tool_result['stdout']
+                elif 'data' in tool_result and isinstance(tool_result['data'], dict) and 'stdout' in tool_result['data']:
+                    output = tool_result['data']['stdout']
+                elif 'output' in tool_result:
+                    output = tool_result['output']
+                else:
+                    output = str(tool_result)
+            else:
+                output = str(tool_result)
+            
+            # 清理乱码输出
+            output = self._clean_garbled_output(output)
+            
+            # 检测文件处理相关的关键词
+            file_indicators = [
+                "保存为", "保存至", "已保存", "saved as", "saved to", "enhanced_", "adjusted_", 
+                "processed_", "output_", "result_", "final_", "enhanced", "adjusted", 
+                "processed", "output", "result", "final"
+            ]
+            
+            # 检查输出中是否包含文件处理信息
+            if any(indicator in output.lower() for indicator in file_indicators):
+                # 尝试从输出中提取文件名
+                import re
+                file_patterns = [
+                    r'保存为\s*([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'saved as\s*([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'enhanced_([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'adjusted_([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'processed_([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'output_([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))',
+                    r'([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))'
+                ]
+                
+                for pattern in file_patterns:
+                    matches = re.findall(pattern, output, re.IGNORECASE)
+                    for match in matches:
+                        if isinstance(match, tuple):
+                            filename = match[0] if match[0] else match[1]
+                        else:
+                            filename = match
+                        
+                        # 检查文件是否存在于uploads目录
+                        from pathlib import Path
+                        upload_dir = Path("web/uploads")
+                        file_path = upload_dir / filename
+                        
+                        if file_path.exists():
+                            processed_files.append({
+                                "filename": filename,
+                                "file_path": str(file_path),
+                                "file_size": file_path.stat().st_size,
+                                "download_link": f"/api/download/{filename}",
+                                "tool_name": result.get("tool", "未知工具")
+                            })
+                            logging.info(f"检测到处理后的文件: {filename}")
+        
+        return processed_files
 
     async def _send_log_to_frontend(self, message: str, level: str = "info"):
         """向前端发送日志消息"""
@@ -946,12 +1213,16 @@ JSON格式：
     async def create_new_tool(self, tool_spec: Dict[str, Any]) -> Dict[str, Any]:
         """Agent创建新工具的方法"""
         try:
-            logging.info(f"Agent {self.config.name} 开始创建新工具: {tool_spec.get('name', 'unknown')}")
+            tool_name = tool_spec.get('name', 'unknown')
+            logging.info(f"Agent {self.config.name} 开始创建新工具: {tool_name}")
+            await self._send_log_to_frontend(f"🛠️ 开始创建新工具: {tool_name}")
             
             # 使用LLM验证工具规范
+            await self._send_log_to_frontend("🔍 正在验证工具规范...")
             validation_result = await self._validate_tool_spec_with_llm(tool_spec)
             
             if not validation_result:
+                await self._send_log_to_frontend("❌ 工具规范验证失败", "error")
                 return {
                     "success": False,
                     "error": "工具规范验证失败"
@@ -959,17 +1230,25 @@ JSON格式：
             
             # 如果验证失败，尝试基于验证反馈重新生成工具
             if not validation_result.get("is_valid", False):
+                await self._send_log_to_frontend("⚠️ 工具验证失败，正在基于反馈重新生成...")
                 logging.info("工具验证失败，尝试基于反馈重新生成...")
-                await self._send_log_to_frontend("工具验证失败，正在基于反馈重新生成...")
+                
+                # 显示验证问题
+                issues = validation_result.get("issues", [])
+                for issue in issues:
+                    await self._send_log_to_frontend(f"💡 验证问题: {issue}")
                 
                 # 基于验证反馈重新生成工具
+                await self._send_log_to_frontend("🔄 正在基于反馈重新生成工具...")
                 improved_spec = await self._improve_tool_spec_with_feedback(tool_spec, validation_result)
                 
                 if improved_spec:
+                    await self._send_log_to_frontend("✅ 基于验证反馈重新生成工具规范")
                     logging.info("基于验证反馈重新生成工具规范")
                     # 递归调用，验证改进后的规范
                     return await self.create_new_tool(improved_spec)
                 else:
+                    await self._send_log_to_frontend("❌ 无法基于验证反馈改进工具规范", "error")
                     logging.warning("无法基于验证反馈改进工具规范")
                     return {
                         "success": False,
@@ -979,6 +1258,15 @@ JSON格式：
             
             # 使用验证通过的规范创建工具
             validated_spec = validation_result.get("validated_spec", tool_spec)
+            
+            # 修复代码中的Unicode字符问题
+            if "code" in validated_spec:
+                await self._send_log_to_frontend("🔧 正在修复Unicode字符问题...")
+                validated_spec["code"] = self._fix_unicode_characters(validated_spec["code"])
+                logging.info(f"已修复工具代码中的Unicode字符问题")
+                await self._send_log_to_frontend("✅ Unicode字符问题修复完成")
+            
+            await self._send_log_to_frontend("📝 正在生成工具代码...")
             new_tool = await self.dynamic_tool_creator.create_tool_from_spec(validated_spec)
             
             if new_tool:
@@ -988,6 +1276,7 @@ JSON格式：
                 # 重新加载系统提示词以包含新工具
                 self.system_prompt = self._load_system_prompt()
                 
+                await self._send_log_to_frontend(f"✅ 成功创建工具: {validated_spec['name']}")
                 logging.info(f"成功创建工具: {validated_spec['name']}")
                 return {
                     "success": True,
@@ -995,16 +1284,40 @@ JSON格式：
                     "message": f"工具 {validated_spec['name']} 创建成功"
                 }
             else:
-                return {
-                    "success": False,
-                    "error": "工具创建失败"
-                }
+                # 工具创建失败，尝试自动修复
+                await self._send_log_to_frontend("❌ 工具创建失败，正在尝试自动修复...")
+                logging.warning("工具创建失败，尝试自动修复...")
+                
+                # 尝试自动修复工具代码
+                fixed_spec = await self._auto_fix_tool_creation_error(validated_spec)
+                
+                if fixed_spec:
+                    await self._send_log_to_frontend("✅ 自动修复成功，重新创建工具...")
+                    logging.info("自动修复成功，重新创建工具...")
+                    
+                    # 确保修复后的代码再次进行Unicode字符修复
+                    if "code" in fixed_spec:
+                        fixed_spec["code"] = self._fix_unicode_characters(fixed_spec["code"])
+                        logging.info("对修复后的代码再次应用Unicode字符修复")
+                    
+                    # 递归调用，使用修复后的规范重新创建
+                    return await self.create_new_tool(fixed_spec)
+                else:
+                    await self._send_log_to_frontend("❌ 工具创建失败，且无法自动修复", "error")
+                    return {
+                        "success": False,
+                        "error": "工具创建失败，且无法自动修复"
+                    }
                 
         except Exception as e:
             import traceback
             error_details = traceback.format_exc()
             logging.error(f"创建工具时发生错误: {e}")
             logging.error(f"详细错误信息: {error_details}")
+            
+            await self._send_log_to_frontend(f"❌ 创建工具时发生错误: {str(e)}", "error")
+            await self._send_log_to_frontend(f"🔍 错误详情: {error_details}", "error")
+            
             return {
                 "success": False,
                 "error": f"工具创建失败: {str(e)}",
@@ -1071,31 +1384,26 @@ JSON格式：
             return None
     
     async def _try_install_missing_package(self, package_name: str) -> Dict[str, Any]:
-        """尝试安装缺失的包"""
+        """尝试安装缺失的包（使用专用包管理器，避免触发服务器重启）"""
         try:
             logging.info(f"尝试安装包: {package_name}")
             await self._send_log_to_frontend(f"尝试安装包: {package_name}")
             
-            # 获取终端工具
-            terminal_tool = self.get_tool("terminal")
-            if not terminal_tool:
-                logging.error("终端工具不可用")
-                return {"success": False, "error": "终端工具不可用"}
+            # 使用专用包管理器，避免使用terminal工具
+            from .package_manager import PackageManager
+            package_manager = PackageManager()
             
-            # 构建安装命令
-            install_command = f"pip install {package_name}"
+            # 执行安装
+            install_result = await package_manager.install_package(package_name)
             
-            # 执行安装命令
-            install_result = await terminal_tool.execute(command=install_command)
-            
-            if install_result.success:
+            if install_result["success"]:
                 logging.info(f"包 {package_name} 安装成功")
                 await self._send_log_to_frontend(f"包 {package_name} 安装成功")
                 return {"success": True, "message": f"包 {package_name} 安装成功"}
             else:
-                logging.error(f"包 {package_name} 安装失败: {install_result.error}")
-                await self._send_log_to_frontend(f"包 {package_name} 安装失败: {install_result.error}")
-                return {"success": False, "error": f"包安装失败: {install_result.error}"}
+                logging.error(f"包 {package_name} 安装失败: {install_result.get('error', '未知错误')}")
+                await self._send_log_to_frontend(f"包 {package_name} 安装失败: {install_result.get('error', '未知错误')}")
+                return {"success": False, "error": f"包安装失败: {install_result.get('error', '未知错误')}"}
                 
         except Exception as e:
             logging.error(f"安装包时发生错误: {e}")
@@ -1201,8 +1509,89 @@ JSON格式：
         try:
             from ..llm.deepseek_client import DeepSeekClient
             import json
+            import os
+            from pathlib import Path
             
-            fix_prompt = f"""
+            # 检测文件路径相关的错误
+            file_path_errors = [
+                "FileNotFoundError",
+                "No such file or directory",
+                "图片文件未找到",
+                "Image file not found",
+                "File not found"
+            ]
+            
+            is_file_path_error = any(error_type in error_message for error_type in file_path_errors)
+            
+            if is_file_path_error:
+                # 特殊处理文件路径错误
+                logging.info("检测到文件路径错误，尝试自动修复...")
+                
+                # 查找上传文件目录中的文件
+                upload_dir = Path("web/uploads")
+                available_files = []
+                if upload_dir.exists():
+                    for file_path in upload_dir.iterdir():
+                        if file_path.is_file():
+                            available_files.append({
+                                "name": file_path.name,
+                                "path": str(file_path),
+                                "size": file_path.stat().st_size
+                            })
+                
+                if available_files:
+                    # 构建文件路径修复提示
+                    file_info = "\n".join([
+                        f"- {file['name']} (路径: {file['path']}, 大小: {file['size']} bytes)"
+                        for file in available_files
+                    ])
+                    
+                    fix_prompt = f"""
+你是一个专业的Python代码修复专家。请根据错误信息修复以下代码。
+
+原始代码：
+```python
+{original_code}
+```
+
+错误信息：
+{error_message}
+
+检测到文件路径错误。以下是可用的上传文件：
+{file_info}
+
+请修复代码，确保：
+1. 使用正确的文件路径（从上面的文件列表中选择合适的文件）
+2. 如果代码中有硬编码的文件名（如 'input.jpg', 'your_image.jpg'），请替换为实际存在的文件路径
+3. 保持代码的其他功能不变
+4. 确保所有必要的import语句都存在
+
+请返回修复后的完整代码，确保代码可以直接执行。
+"""
+                else:
+                    # 没有找到上传文件，提供通用修复提示
+                    fix_prompt = f"""
+你是一个专业的Python代码修复专家。请根据错误信息修复以下代码。
+
+原始代码：
+```python
+{original_code}
+```
+
+错误信息：
+{error_message}
+
+检测到文件路径错误，但没有找到可用的上传文件。请修复代码，确保：
+1. 使用正确的文件路径
+2. 如果代码中有硬编码的文件名，请替换为实际存在的文件路径
+3. 保持代码的其他功能不变
+4. 确保所有必要的import语句都存在
+
+请返回修复后的完整代码，确保代码可以直接执行。
+"""
+            else:
+                # 通用错误修复
+                fix_prompt = f"""
 你是一个专业的Python代码修复专家。请根据错误信息修复以下代码。
 
 原始代码：
@@ -1219,6 +1608,7 @@ JSON格式：
 3. 修复语法错误
 4. 添加必要的函数定义
 5. 修复缩进问题
+6. 修复文件路径问题
 
 请返回修复后的完整代码，确保：
 - 包含所有必要的import语句
@@ -1361,6 +1751,388 @@ JSON格式：
                 "success": False,
                 "error": f"自动修复工具代码失败: {str(e)}"
             }
+
+    async def _auto_fix_tool_creation_error(self, tool_spec: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+        """自动修复工具创建错误"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            import json
+            import traceback
+            
+            # 尝试从动态工具创建器获取错误信息
+            error_info = ""
+            if hasattr(self.dynamic_tool_creator, '_last_error_info'):
+                error_info = self.dynamic_tool_creator._last_error_info.get("error_details", "")
+                logging.info(f"从动态工具创建器获取到错误信息: {error_info[:200]}...")
+            else:
+                # 如果没有存储的错误信息，使用当前traceback
+                error_info = traceback.format_exc()
+                logging.info(f"使用当前traceback作为错误信息: {error_info[:200]}...")
+            
+            # 分析错误类型
+            error_analysis = self._analyze_tool_creation_error(error_info, tool_spec)
+            logging.info(f"错误分析结果: {error_analysis['error_type']}")
+            
+            if error_analysis["error_type"] == "syntax_error":
+                # 语法错误，尝试修复代码
+                logging.info("检测到语法错误，尝试自动修复...")
+                await self._send_log_to_frontend("检测到语法错误，正在自动修复...")
+                
+                fixed_code = await self._auto_fix_syntax_error(
+                    tool_spec["code"], 
+                    error_analysis["error_message"]
+                )
+                
+                if fixed_code:
+                    # 创建修复后的工具规范
+                    fixed_spec = tool_spec.copy()
+                    fixed_spec["code"] = fixed_code
+                    logging.info("语法错误修复成功")
+                    return fixed_spec
+                else:
+                    logging.error("语法错误修复失败")
+                    return None
+                    
+            elif error_analysis["error_type"] == "import_error":
+                # 导入错误，尝试添加缺失的导入
+                logging.info("检测到导入错误，尝试自动修复...")
+                await self._send_log_to_frontend("检测到导入错误，正在自动修复...")
+                
+                fixed_code = await self._auto_fix_import_error(
+                    tool_spec["code"], 
+                    error_analysis["error_message"]
+                )
+                
+                if fixed_code:
+                    fixed_spec = tool_spec.copy()
+                    fixed_spec["code"] = fixed_code
+                    logging.info("导入错误修复成功")
+                    return fixed_spec
+                else:
+                    logging.error("导入错误修复失败")
+                    return None
+                    
+            else:
+                # 其他类型错误，尝试通用修复
+                logging.info(f"检测到{error_analysis['error_type']}错误，尝试通用修复...")
+                await self._send_log_to_frontend(f"检测到{error_analysis['error_type']}错误，正在尝试通用修复...")
+                
+                fixed_code = await self._auto_fix_general_error(
+                    tool_spec["code"], 
+                    error_analysis["error_message"]
+                )
+                
+                if fixed_code:
+                    fixed_spec = tool_spec.copy()
+                    fixed_spec["code"] = fixed_code
+                    logging.info("通用错误修复成功")
+                    return fixed_spec
+                else:
+                    logging.error("通用错误修复失败")
+                    return None
+                    
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            logging.error(f"自动修复工具创建错误时发生异常: {e}")
+            logging.error(f"详细错误信息: {error_details}")
+            return None
+
+    def _analyze_tool_creation_error(self, error_info: str, tool_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """分析工具创建错误类型"""
+        error_info_lower = error_info.lower()
+        
+        # 改进的语法错误检测
+        syntax_keywords = [
+            "syntaxerror", "invalid syntax", "invalid character", 
+            "syntax error", "unexpected token", "unexpected character"
+        ]
+        
+        if any(keyword in error_info_lower for keyword in syntax_keywords):
+            # 提取具体的错误位置信息
+            line_info = ""
+            if "line" in error_info:
+                import re
+                line_match = re.search(r'line (\d+)', error_info)
+                if line_match:
+                    line_num = int(line_match.group(1))
+                    line_info = f"错误发生在第 {line_num} 行"
+            
+            return {
+                "error_type": "syntax_error",
+                "error_message": error_info,
+                "line_info": line_info,
+                "suggestions": ["检查语法错误", "修复Unicode字符问题", "检查缩进", "检查中文注释中的标点符号"]
+            }
+        
+        # 检测导入错误
+        elif any(keyword in error_info_lower for keyword in ["importerror", "modulenotfounderror", "no module named"]):
+            return {
+                "error_type": "import_error", 
+                "error_message": error_info,
+                "suggestions": ["添加缺失的import语句", "检查模块名称"]
+            }
+        
+        # 检测名称错误
+        elif any(keyword in error_info_lower for keyword in ["nameerror", "name '.*' is not defined"]):
+            return {
+                "error_type": "name_error",
+                "error_message": error_info,
+                "suggestions": ["检查变量名", "添加变量定义"]
+            }
+        
+        # 检测文件错误
+        elif any(keyword in error_info_lower for keyword in ["filenotfounderror", "no such file or directory"]):
+            return {
+                "error_type": "file_error",
+                "error_message": error_info,
+                "suggestions": ["检查文件路径", "确保文件存在"]
+            }
+        
+        # 默认返回通用错误
+        else:
+            return {
+                "error_type": "general_error",
+                "error_message": error_info,
+                "suggestions": ["检查代码逻辑", "验证参数"]
+            }
+
+    async def _auto_fix_syntax_error(self, code: str, error_message: str) -> Optional[str]:
+        """自动修复语法错误"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            
+            # 提取错误行号信息
+            line_info = ""
+            if "line" in error_message:
+                import re
+                line_match = re.search(r'line (\d+)', error_message)
+                if line_match:
+                    line_num = int(line_match.group(1))
+                    line_info = f"错误发生在第 {line_num} 行"
+            
+            # 获取错误行附近的代码上下文
+            code_lines = code.split('\n')
+            context_lines = []
+            if line_info and "第" in line_info:
+                line_num = int(re.search(r'第 (\d+) 行', line_info).group(1))
+                start_line = max(0, line_num - 3)
+                end_line = min(len(code_lines), line_num + 2)
+                context_lines = code_lines[start_line:end_line]
+                context_code = '\n'.join(context_lines)
+            else:
+                context_code = code
+            
+            fix_prompt = f"""
+你是一个专业的Python语法错误修复专家。请根据错误信息修复以下代码的语法错误。
+
+错误信息：
+{error_message}
+
+{line_info}
+
+错误行附近的代码上下文：
+```python
+{context_code}
+```
+
+完整代码：
+```python
+{code}
+```
+
+请分析语法错误并修复代码。特别注意：
+1. 修复Unicode字符问题（全角字符转换为半角）
+2. 修复缩进问题
+3. 修复括号匹配问题
+4. 修复引号匹配问题
+5. 修复冒号、逗号等标点符号问题
+6. 特别注意中文注释中的Unicode字符（如：：、，、（）等）
+7. 检查函数定义和参数列表的语法
+8. 确保所有字符串引号正确匹配
+
+修复要求：
+- 只修复语法错误，不要改变代码逻辑
+- 保持原有的中文注释，但修复其中的标点符号
+- 确保代码可以直接执行
+- 特别注意第{line_info.split()[-1] if line_info else '未知'}行附近的语法问题
+
+请返回修复后的完整代码，确保：
+- 修复所有语法错误
+- 保持原有功能不变
+- 代码可以直接执行
+- 所有中文注释中的全角标点符号都要转换为半角
+
+请只返回修复后的代码，不要包含任何解释或注释。
+"""
+            
+            async with DeepSeekClient() as llm_client:
+                response = await llm_client.generate_response(
+                    prompt=fix_prompt,
+                    temperature=0.1
+                )
+                
+                if response["success"]:
+                    # 提取修复后的代码
+                    content = response["content"]
+                    
+                    # 尝试提取代码块
+                    import re
+                    code_match = re.search(r'```(?:python)?\s*(.*?)\s*```', content, re.DOTALL)
+                    if code_match:
+                        fixed_code = code_match.group(1)
+                    else:
+                        fixed_code = content
+                    
+                    # 再次应用Unicode字符修复
+                    fixed_code = self._fix_unicode_characters(fixed_code)
+                    
+                    # 验证修复是否成功
+                    if fixed_code and len(fixed_code.strip()) > 0:
+                        logging.info(f"语法错误修复成功")
+                        return fixed_code
+                    else:
+                        logging.error("修复后的代码为空")
+                        return None
+                else:
+                    logging.error(f"LLM修复语法错误失败: {response.get('error', '未知错误')}")
+                    return None
+                    
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            logging.error(f"自动修复语法错误时发生异常: {e}")
+            logging.error(f"详细错误信息: {error_details}")
+            return None
+
+    async def _auto_fix_import_error(self, code: str, error_message: str) -> Optional[str]:
+        """自动修复导入错误"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            
+            fix_prompt = f"""
+你是一个专业的Python导入错误修复专家。请根据错误信息修复以下代码的导入错误。
+
+原始代码:
+```python
+{code}
+```
+
+错误信息:
+{error_message}
+
+请分析导入错误并修复代码。修复要求：
+1. 添加缺失的import语句
+2. 检查模块名称是否正确
+3. 确保所有必要的依赖都已导入
+4. 修复import语句的顺序和格式
+
+请返回修复后的完整代码，确保：
+- 包含所有必要的import语句
+- 修复所有导入错误
+- 保持原有功能不变
+- 代码可以直接执行
+
+请只返回修复后的代码，不要包含任何解释或注释。
+"""
+            
+            async with DeepSeekClient() as llm_client:
+                response = await llm_client.generate_response(
+                    prompt=fix_prompt,
+                    temperature=0.1
+                )
+                
+                if response["success"]:
+                    # 提取修复后的代码
+                    content = response["content"]
+                    
+                    # 尝试提取代码块
+                    import re
+                    code_match = re.search(r'```(?:python)?\s*(.*?)\s*```', content, re.DOTALL)
+                    if code_match:
+                        fixed_code = code_match.group(1)
+                    else:
+                        fixed_code = content
+                    
+                    if fixed_code and len(fixed_code.strip()) > 0:
+                        logging.info("导入错误修复成功")
+                        return fixed_code
+                    else:
+                        logging.error("导入错误修复失败：修复后的代码为空")
+                        return None
+                else:
+                    logging.error(f"LLM导入错误修复失败: {response.get('error', '未知错误')}")
+                    return None
+                    
+        except Exception as e:
+            logging.error(f"自动修复导入错误时发生异常: {e}")
+            return None
+
+    async def _auto_fix_general_error(self, code: str, error_message: str) -> Optional[str]:
+        """自动修复通用错误"""
+        try:
+            from ..llm.deepseek_client import DeepSeekClient
+            
+            fix_prompt = f"""
+你是一个专业的Python代码修复专家。请根据错误信息修复以下代码。
+
+原始代码:
+```python
+{code}
+```
+
+错误信息:
+{error_message}
+
+请分析错误原因并修复代码。修复要求：
+1. 修复所有语法错误
+2. 添加缺失的import语句
+3. 修复变量名或函数名错误
+4. 修复逻辑错误
+5. 确保代码可以正常执行
+
+请返回修复后的完整代码，确保：
+- 修复所有错误
+- 保持原有功能不变
+- 代码可以直接执行
+
+请只返回修复后的代码，不要包含任何解释或注释。
+"""
+            
+            async with DeepSeekClient() as llm_client:
+                response = await llm_client.generate_response(
+                    prompt=fix_prompt,
+                    temperature=0.2
+                )
+                
+                if response["success"]:
+                    # 提取修复后的代码
+                    content = response["content"]
+                    
+                    # 尝试提取代码块
+                    import re
+                    code_match = re.search(r'```(?:python)?\s*(.*?)\s*```', content, re.DOTALL)
+                    if code_match:
+                        fixed_code = code_match.group(1)
+                    else:
+                        fixed_code = content
+                    
+                    # 应用Unicode字符修复
+                    fixed_code = self._fix_unicode_characters(fixed_code)
+                    
+                    if fixed_code and len(fixed_code.strip()) > 0:
+                        logging.info("通用错误修复成功")
+                        return fixed_code
+                    else:
+                        logging.error("通用错误修复失败：修复后的代码为空")
+                        return None
+                else:
+                    logging.error(f"LLM通用错误修复失败: {response.get('error', '未知错误')}")
+                    return None
+                    
+        except Exception as e:
+            logging.error(f"自动修复通用错误时发生异常: {e}")
+            return None
     
     async def _analyze_task_with_error_context(self, task_description: str, error_context: Dict) -> Optional[Dict]:
         """带错误上下文的任务分析"""

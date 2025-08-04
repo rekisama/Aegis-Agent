@@ -174,14 +174,14 @@
             font-weight: 500;
         }
 
-        /* Apple Style Button */
+        /* Neumorphism Button Styles */
         .apple-button {
             width: 100%;
             padding: var(--apple-spacing-md) var(--apple-spacing-lg);
-            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
+            background: var(--apple-bg-primary);
             border: none;
             border-radius: var(--apple-radius-lg);
-            color: var(--apple-text-inverted);
+            color: var(--apple-text-primary);
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
@@ -191,27 +191,45 @@
             justify-content: center;
             gap: var(--apple-spacing-sm);
             margin-top: var(--apple-spacing-md);
-            box-shadow: var(--apple-shadow-sm);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.1),
+                -8px -8px 16px rgba(255, 255, 255, 0.8);
+            position: relative;
         }
 
         .apple-button:hover {
             transform: translateY(-2px);
-            box-shadow: var(--apple-shadow-md);
+            box-shadow: 
+                12px 12px 20px rgba(0, 0, 0, 0.15),
+                -12px -12px 20px rgba(255, 255, 255, 0.9);
         }
 
         .apple-button:active {
             transform: translateY(0);
+            box-shadow: 
+                inset 4px 4px 8px rgba(0, 0, 0, 0.1),
+                inset -4px -4px 8px rgba(255, 255, 255, 0.8);
         }
 
         .apple-button.secondary {
-            background: linear-gradient(135deg, var(--apple-bg-elevated) 0%, var(--apple-bg-tertiary) 100%);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
-            border: 1px solid var(--apple-border-medium);
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
         }
 
         .apple-button.secondary:hover {
-            background: linear-gradient(135deg, var(--apple-bg-tertiary) 0%, var(--apple-bg-secondary) 100%);
-            border-color: var(--apple-blue);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
+        }
+
+        .apple-button.secondary:active {
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .sidebar-content {
@@ -271,7 +289,7 @@
         }
 
         .delete-chat-btn {
-            background: none;
+            background: var(--apple-bg-primary);
             border: none;
             color: var(--apple-text-tertiary);
             cursor: pointer;
@@ -279,12 +297,25 @@
             border-radius: var(--apple-radius-sm);
             opacity: 0;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .delete-chat-btn:hover {
-            background: var(--apple-red);
-            color: var(--apple-text-inverted);
+            background: var(--apple-bg-primary);
+            color: var(--apple-red);
             transform: scale(1.1);
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.15),
+                -4px -4px 8px rgba(255, 255, 255, 0.9);
+        }
+
+        .delete-chat-btn:active {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
         }
 
         .chat-history li:hover .delete-chat-btn {
@@ -379,6 +410,49 @@
             box-shadow: var(--apple-shadow-sm);
         }
 
+        /* Download Button Styles */
+        .download-link {
+            text-decoration: none;
+            display: inline-block;
+            margin: var(--apple-spacing-sm) 0;
+        }
+
+        .download-button {
+            background: var(--apple-blue);
+            color: white;
+            border: none;
+            border-radius: var(--apple-radius-sm);
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            text-align: center;
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                2px 2px 4px rgba(0, 0, 0, 0.1),
+                -2px -2px 4px rgba(255, 255, 255, 0.8);
+        }
+
+        .download-button:hover {
+            background: var(--apple-blue-dark);
+            transform: translateY(-1px);
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.15),
+                -3px -3px 6px rgba(255, 255, 255, 0.9);
+        }
+
+        .download-button:active {
+            transform: translateY(0);
+            box-shadow: 
+                inset 1px 1px 2px rgba(0, 0, 0, 0.1),
+                inset -1px -1px 2px rgba(255, 255, 255, 0.8);
+        }
+
         /* Input Area */
         .input-container {
             padding: var(--apple-spacing-lg);
@@ -424,37 +498,187 @@
         }
 
         .send-button {
-            position: absolute;
-            right: var(--apple-spacing-sm);
-            bottom: var(--apple-spacing-sm);
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--apple-blue) 0%, var(--apple-blue-dark) 100%);
+            background: var(--apple-bg-primary);
             border: none;
             border-radius: var(--apple-radius-full);
-            color: var(--apple-text-inverted);
+            color: var(--apple-text-primary);
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-size: 18px;
-            box-shadow: var(--apple-shadow-sm);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
         }
 
         .send-button:hover:not(:disabled) {
             transform: scale(1.05);
-            box-shadow: var(--apple-shadow-md);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
         }
 
         .send-button:active {
             transform: scale(0.95);
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .send-button:disabled {
             background: var(--apple-gray-400);
             cursor: not-allowed;
             transform: none;
+            box-shadow: none;
+        }
+
+        /* File Upload Styles */
+        .file-upload-area {
+            display: none;
+            margin-bottom: var(--apple-spacing-md);
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .file-upload-area.show {
+            display: block;
+        }
+
+        .file-upload-dropzone {
+            border: 2px dashed var(--apple-border-medium);
+            border-radius: var(--apple-radius-lg);
+            padding: var(--apple-spacing-xl);
+            text-align: center;
+            background: var(--apple-bg-elevated);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.1),
+                -4px -4px 8px rgba(255, 255, 255, 0.8);
+        }
+
+        .file-upload-dropzone:hover {
+            border-color: var(--apple-blue);
+            background: var(--apple-bg-primary);
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.15),
+                -6px -6px 12px rgba(255, 255, 255, 0.9);
+        }
+
+        .file-upload-dropzone.drag-over {
+            border-color: var(--apple-blue);
+            background: var(--apple-bg-primary);
+            transform: scale(1.02);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.2),
+                -8px -8px 16px rgba(255, 255, 255, 1);
+        }
+
+        .file-upload-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: var(--apple-spacing-sm);
+            color: var(--apple-text-secondary);
+        }
+
+        .file-upload-content svg {
+            color: var(--apple-text-tertiary);
+        }
+
+        .file-list {
+            margin-top: var(--apple-spacing-md);
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--apple-spacing-sm);
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: var(--apple-spacing-sm);
+            padding: var(--apple-spacing-sm) var(--apple-spacing-md);
+            background: var(--apple-bg-primary);
+            border-radius: var(--apple-radius-md);
+            border: 1px solid var(--apple-border-medium);
+            font-size: 14px;
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.8);
+        }
+
+        .file-item .file-name {
+            color: var(--apple-text-primary);
+            font-weight: 500;
+        }
+
+        .file-item .file-size {
+            color: var(--apple-text-secondary);
+            font-size: 12px;
+        }
+
+        .file-item .remove-file {
+            background: none;
+            border: none;
+            color: var(--apple-red);
+            cursor: pointer;
+            padding: 2px;
+            border-radius: var(--apple-radius-sm);
+            transition: all 0.2s ease;
+        }
+
+        .file-item .remove-file:hover {
+            background: var(--apple-red);
+            color: white;
+        }
+
+        .input-buttons {
+            position: absolute;
+            right: var(--apple-spacing-sm);
+            bottom: var(--apple-spacing-sm);
+            display: flex;
+            gap: var(--apple-spacing-sm);
+        }
+
+        .upload-button {
+            width: 48px;
+            height: 48px;
+            background: var(--apple-bg-primary);
+            border: none;
+            border-radius: var(--apple-radius-full);
+            color: var(--apple-text-primary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 18px;
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
+        }
+
+        .upload-button:hover {
+            transform: scale(1.05);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
+        }
+
+        .upload-button:active {
+            transform: scale(0.95);
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         /* Status Bar */
@@ -521,7 +745,7 @@
         }
 
         .tool-management-btn {
-            background: var(--apple-gradient-primary);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
             border: none;
             padding: var(--apple-spacing-sm) var(--apple-spacing-md);
@@ -530,20 +754,26 @@
             font-family: var(--apple-font-family);
             font-size: var(--apple-text-sm);
             font-weight: 500;
-            transition: all var(--apple-transition);
-            box-shadow: var(--apple-shadow-sm);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
             margin: var(--apple-spacing-xs);
         }
 
         .tool-management-btn:hover {
             transform: translateY(-1px);
-            box-shadow: var(--apple-shadow-md);
-            opacity: 0.9;
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
         }
 
         .tool-management-btn:active {
             transform: translateY(0);
-            box-shadow: var(--apple-shadow-sm);
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .tool-input {
@@ -611,24 +841,40 @@
             border-radius: var(--apple-radius-md);
             cursor: pointer;
             font-size: var(--apple-text-xs);
-            transition: all var(--apple-transition);
-            background: var(--apple-bg-subtle);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-secondary);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .tool-action-btn:hover {
-            background: var(--apple-blue);
-            color: white;
+            background: var(--apple-bg-primary);
+            color: var(--apple-blue);
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.15),
+                -4px -4px 8px rgba(255, 255, 255, 0.9);
+        }
+
+        .tool-action-btn:active {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
         }
 
         .tool-action-btn.delete {
-            background: var(--apple-red-alpha);
+            background: var(--apple-bg-primary);
             color: var(--apple-red);
         }
 
         .tool-action-btn.delete:hover {
-            background: var(--apple-red);
-            color: white;
+            background: var(--apple-bg-primary);
+            color: var(--apple-red);
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.15),
+                -4px -4px 8px rgba(255, 255, 255, 0.9);
         }
 
         .tool-modal {
@@ -679,19 +925,32 @@
         }
 
         .tool-modal-close {
-            background: none;
+            background: var(--apple-bg-primary);
             border: none;
             font-size: var(--apple-text-xl);
             cursor: pointer;
             color: var(--apple-text-secondary);
             padding: var(--apple-spacing-xs);
             border-radius: var(--apple-radius-md);
-            transition: all var(--apple-transition);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .tool-modal-close:hover {
-            background: var(--apple-bg-hover);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.15),
+                -4px -4px 8px rgba(255, 255, 255, 0.9);
+        }
+
+        .tool-modal-close:active {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
         }
 
         .tool-form-group {
@@ -745,28 +1004,52 @@
             font-family: var(--apple-font-family);
             font-size: var(--apple-text-sm);
             font-weight: 500;
-            transition: all var(--apple-transition);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .tool-modal-btn.primary {
-            background: var(--apple-gradient-primary);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
-            box-shadow: var(--apple-shadow-sm);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
         }
 
         .tool-modal-btn.primary:hover {
             transform: translateY(-1px);
-            box-shadow: var(--apple-shadow-md);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
+        }
+
+        .tool-modal-btn.primary:active {
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .tool-modal-btn.secondary {
-            background: var(--apple-bg-subtle);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-secondary);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.1),
+                -4px -4px 8px rgba(255, 255, 255, 0.8);
         }
 
         .tool-modal-btn.secondary:hover {
-            background: var(--apple-bg-hover);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.15),
+                -6px -6px 12px rgba(255, 255, 255, 0.9);
+        }
+
+        .tool-modal-btn.secondary:active {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
         }
 
         /* 工具管理面板样式 */
@@ -813,19 +1096,32 @@
         }
 
         .close-btn {
-            background: none;
+            background: var(--apple-bg-primary);
             border: none;
             color: var(--apple-text-secondary);
             font-size: var(--apple-text-xl);
             cursor: pointer;
             padding: var(--apple-spacing-xs);
             border-radius: var(--apple-radius-md);
-            transition: all var(--apple-transition);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                3px 3px 6px rgba(0, 0, 0, 0.1),
+                -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .close-btn:hover {
-            background: var(--apple-bg-hover);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
+            box-shadow: 
+                4px 4px 8px rgba(0, 0, 0, 0.15),
+                -4px -4px 8px rgba(255, 255, 255, 0.9);
+        }
+
+        .close-btn:active {
+            box-shadow: 
+                inset 2px 2px 4px rgba(0, 0, 0, 0.1),
+                inset -2px -2px 4px rgba(255, 255, 255, 0.8);
         }
 
         .tool-panel-body {
@@ -881,21 +1177,32 @@
         }
 
         .create-tool-btn {
-            background: var(--apple-gradient-primary);
+            background: var(--apple-bg-primary);
             color: var(--apple-text-primary);
             border: none;
             padding: var(--apple-spacing-md) var(--apple-spacing-lg);
             border-radius: var(--apple-radius-lg);
             font-size: var(--apple-text-sm);
             cursor: pointer;
-            transition: all var(--apple-transition);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             font-weight: 500;
-            box-shadow: var(--apple-shadow-sm);
+            /* Neumorphism shadow effect */
+            box-shadow: 
+                6px 6px 12px rgba(0, 0, 0, 0.1),
+                -6px -6px 12px rgba(255, 255, 255, 0.8);
         }
 
         .create-tool-btn:hover {
             transform: translateY(-1px);
-            box-shadow: var(--apple-shadow-md);
+            box-shadow: 
+                8px 8px 16px rgba(0, 0, 0, 0.15),
+                -8px -8px 16px rgba(255, 255, 255, 0.9);
+        }
+
+        .create-tool-btn:active {
+            box-shadow: 
+                inset 3px 3px 6px rgba(0, 0, 0, 0.1),
+                inset -3px -3px 6px rgba(255, 255, 255, 0.8);
         }
 
         .dynamic-tools-list h4 {
@@ -1203,6 +1510,22 @@
             </div>
             
             <div class="input-container">
+                <!-- File Upload Area -->
+                <div class="file-upload-area" id="fileUploadArea">
+                    <div class="file-upload-dropzone" id="fileDropzone">
+                        <input type="file" id="fileInput" multiple accept="*/*" style="display: none;">
+                        <div class="file-upload-content">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            <span>拖拽文件到此处或点击上传</span>
+                        </div>
+                    </div>
+                    <div class="file-list" id="fileList"></div>
+                </div>
+                
                 <div class="input-wrapper">
                     <textarea 
                         id="messageInput" 
@@ -1211,11 +1534,20 @@
                         rows="1"
                         onkeydown="handleKeyDown(event)"
                     ></textarea>
+                    <div class="input-buttons">
+                        <button id="uploadButton" class="upload-button" title="上传文件">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M21 15V19C21 19.5304 20.7893 20.0391 20.4142 20.4142C20.0391 20.7893 19.5304 21 19 21H5C4.46957 21 3.96086 20.7893 3.58579 20.4142C3.21071 20.0391 3 19.5304 3 19V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M7 10L12 15L17 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                <path d="M12 15V3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
                     <button id="sendButton" class="send-button" onclick="sendMessage()">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M22 2L11 13M22 2L15 22L11 13M22 2L2 9L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1232,6 +1564,7 @@
         let reconnectTimeout = null;
         let currentChatId = null;
         let chatHistory = [];
+        let uploadedFiles = []; // 存储已上传的文件
 
         // 生成唯一ID
         function generateId() {
@@ -1436,10 +1769,77 @@
             
             const avatar = type === 'user' ? '👤' : type === 'assistant' ? '🤖' : '⚠️';
             
+            // 检测并处理下载链接
+            let processedContent = content;
+            if (type === 'assistant') {
+                console.log('处理助手消息:', content);
+                
+                // 检测下载链接模式 - 支持多种格式
+                const downloadLinkRegex = /(\/api\/download\/[^\s]+)/g;
+                processedContent = content.replace(downloadLinkRegex, (match, link) => {
+                    console.log('检测到下载链接:', link);
+                    // 提取文件名
+                    const filename = link.split('/').pop();
+                    return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                        <button class="download-button">
+                            📥 下载 ${filename}
+                        </button>
+                    </a>`;
+                });
+                
+                // 检测Agent生成的下载链接格式: "filename (file_size bytes): /api/download/filename"
+                const agentDownloadRegex = /([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))\s*\([^)]+\):\s*(\/api\/download\/[^\s]+)/g;
+                processedContent = processedContent.replace(agentDownloadRegex, (match, filename, ext, link) => {
+                    console.log('检测到Agent下载链接:', filename, link);
+                    return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                        <button class="download-button">
+                            📥 下载 ${filename}
+                        </button>
+                    </a>`;
+                });
+                
+                // 检测更通用的下载链接格式: 任何包含 /api/download/ 的链接
+                const generalDownloadRegex = /([^\s]+\.(png|jpg|jpeg|gif|bmp|pdf|txt|json))\s*[^\/]*(\/api\/download\/[^\s]+)/g;
+                processedContent = processedContent.replace(generalDownloadRegex, (match, filename, ext, link) => {
+                    console.log('检测到通用下载链接:', filename, link);
+                    return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                        <button class="download-button">
+                            📥 下载 ${filename}
+                        </button>
+                    </a>`;
+                });
+                
+                // 检测"下载链接:"格式
+                const downloadLinkFormatRegex = /下载链接:\s*(\/api\/download\/[^\s]+)/g;
+                processedContent = processedContent.replace(downloadLinkFormatRegex, (match, link) => {
+                    console.log('检测到下载链接格式:', link);
+                    const filename = link.split('/').pop();
+                    return `<a href="${link}" class="download-link" download="${filename}" target="_blank">
+                        <button class="download-button">
+                            📥 下载 ${filename}
+                        </button>
+                    </a>`;
+                });
+                
+                // 检测Markdown格式的下载链接: [文本](web/uploads/filename)
+                const markdownDownloadRegex = /\[([^\]]+)\]\(web\/uploads\/([^\s)]+)\)/g;
+                processedContent = processedContent.replace(markdownDownloadRegex, (match, text, filename) => {
+                    console.log('检测到Markdown下载链接:', text, filename);
+                    const downloadLink = `/api/download/${filename}`;
+                    return `<a href="${downloadLink}" class="download-link" download="${filename}" target="_blank">
+                        <button class="download-button">
+                            📥 ${text}
+                        </button>
+                    </a>`;
+                });
+                
+                console.log('处理后的内容:', processedContent);
+            }
+            
             messageDiv.innerHTML = `
                 <div class="message-content">
                     <div class="message-avatar">${avatar}</div>
-                    <div class="message-text">${content}</div>
+                    <div class="message-text">${processedContent}</div>
                 </div>
             `;
             
@@ -1459,8 +1859,8 @@
             const message = messageInput.value.trim();
             console.log('消息内容:', message);
             
-            if (!message) {
-                console.log('消息为空，返回');
+            if (!message && uploadedFiles.length === 0) {
+                console.log('消息为空且无附件，返回');
                 return;
             }
 
@@ -1485,7 +1885,8 @@
                     console.log('通过WebSocket发送消息');
                     ws.send(JSON.stringify({
                         type: 'chat',
-                        message: message
+                        message: message,
+                        attached_files: uploadedFiles.map(file => file.file_path)
                     }));
                 } else {
                     console.log('WebSocket不可用，使用HTTP API');
@@ -1494,7 +1895,10 @@
                         headers: {
                             'Content-Type': 'application/json',
                         },
-                        body: JSON.stringify({ message: message })
+                        body: JSON.stringify({ 
+                            message: message,
+                            attached_files: uploadedFiles.map(file => file.file_path)
+                        })
                     });
                     
                     const result = await response.json();
@@ -1504,6 +1908,12 @@
                         addMessage('error', `错误: ${result.error}`);
                     }
                 }
+                
+                // 清空文件列表
+                uploadedFiles = [];
+                document.getElementById('fileList').innerHTML = '';
+                document.getElementById('fileUploadArea').classList.remove('show');
+                
             } catch (error) {
                 console.error('发送消息失败:', error);
                 addMessage('error', `发送消息失败: ${error.message}`);
@@ -1815,7 +2225,149 @@
                 createTool();
             });
         }
+        
+        // 初始化文件上传功能
+        initializeFileUpload();
     });
+
+    // 文件上传功能
+    function initializeFileUpload() {
+        const fileDropzone = document.getElementById('fileDropzone');
+        const fileInput = document.getElementById('fileInput');
+        const uploadButton = document.getElementById('uploadButton');
+        
+        console.log('Initializing file upload...'); // Debug log
+        console.log('uploadButton found:', uploadButton); // Debug log
+        
+        // 点击上传按钮切换文件上传区域
+        if (uploadButton) {
+            uploadButton.addEventListener('click', toggleFileUpload);
+            console.log('Upload button click listener attached'); // Debug log
+        } else {
+            console.error('Upload button not found'); // Debug log
+        }
+        
+        // 点击拖拽区域触发文件选择
+        if (fileDropzone) {
+            fileDropzone.addEventListener('click', () => fileInput.click());
+        }
+        
+        // 文件选择事件
+        if (fileInput) {
+            fileInput.addEventListener('change', handleFileSelect);
+        }
+        
+        // 拖拽事件
+        if (fileDropzone) {
+            fileDropzone.addEventListener('dragover', handleDragOver);
+            fileDropzone.addEventListener('dragleave', handleDragLeave);
+            fileDropzone.addEventListener('drop', handleDrop);
+        }
+    }
+
+    function toggleFileUpload() {
+        console.log('toggleFileUpload called'); // Debug log
+        const fileUploadArea = document.getElementById('fileUploadArea');
+        if (fileUploadArea) {
+            fileUploadArea.classList.toggle('show');
+            console.log('File upload area toggled, show class:', fileUploadArea.classList.contains('show')); // Debug log
+        } else {
+            console.error('fileUploadArea element not found'); // Debug log
+        }
+    }
+
+    function handleFileSelect(event) {
+        const files = Array.from(event.target.files);
+        uploadFiles(files);
+    }
+
+    function handleDragOver(event) {
+        event.preventDefault();
+        event.currentTarget.classList.add('drag-over');
+    }
+
+    function handleDragLeave(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+    }
+
+    function handleDrop(event) {
+        event.preventDefault();
+        event.currentTarget.classList.remove('drag-over');
+        
+        const files = Array.from(event.dataTransfer.files);
+        uploadFiles(files);
+    }
+
+    async function uploadFiles(files) {
+        for (const file of files) {
+            try {
+                const formData = new FormData();
+                formData.append('file', file);
+                
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    uploadedFiles.push(result);
+                    addFileToList(result);
+                } else {
+                    const error = await response.json();
+                    addMessage('error', `文件上传失败: ${error.error}`);
+                }
+            } catch (error) {
+                addMessage('error', `文件上传时发生错误: ${error}`);
+            }
+        }
+        
+        // 清空文件输入
+        document.getElementById('fileInput').value = '';
+    }
+
+    function addFileToList(fileInfo) {
+        const fileList = document.getElementById('fileList');
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
+        fileItem.innerHTML = `
+            <span class="file-name">${fileInfo.filename}</span>
+            <span class="file-size">${formatFileSize(fileInfo.file_size)}</span>
+            <button class="remove-file" onclick="removeFile('${fileInfo.filename}')">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+        `;
+        fileList.appendChild(fileItem);
+    }
+
+    function removeFile(filename) {
+        // 从上传文件列表中移除
+        uploadedFiles = uploadedFiles.filter(file => file.filename !== filename);
+        
+        // 从DOM中移除文件项
+        const fileItems = document.querySelectorAll('.file-item');
+        fileItems.forEach(item => {
+            if (item.querySelector('.file-name').textContent === filename) {
+                item.remove();
+            }
+        });
+        
+        // 如果没有文件了，隐藏文件上传区域
+        if (uploadedFiles.length === 0) {
+            document.getElementById('fileUploadArea').classList.remove('show');
+        }
+    }
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
     </script>
 </body>
 </html> 
